@@ -5,17 +5,19 @@
 [![Go Module](https://img.shields.io/github/go-mod/go-version/tideland/go-stew)](https://github.com/tideland/go-stew/blob/master/go.mod)
 [![GoDoc](https://godoc.org/tideland.dev/go/stew?status.svg)](https://pkg.go.dev/mod/tideland.dev/go/stew?tab=packages)
 [![Workflow](https://github.com/tideland/go-stew/actions/workflows/go.yml/badge.svg)](https://github.com/tideland/go-stew/actions/)
-[![Go Report Card](https://goreportcard.com/badge/github.com/tideland/go-stew)](https://goreportcard.com/report/tideland.dev/go/stew)
 
-## Description
+### Description
 
 **Tideland Go Stew** provides a good collection of useful Go packages, like a delicious stew. These are usefult for many purposes. It's a kind of toolbox for the daily work of Go developers.
 
 * `asserts` provides routines for assertions helpful in unit tests and but also input validation
+* `capture` allows to capture the output on STDOUT and STDERR; useful for testing
+* `environments` lets you set environment variables or create temporary directories for tests
+* `generators` provides a generator for random data, typially used in tests
 
 I hope you like it. ;)
 
-## Contributors
+### Contributors
 
 - Frank Mueller (https://github.com/themue / https://github.com/tideland / https://tideland.dev)
 
