@@ -13,8 +13,10 @@
 * `actor` supports easier synchronous and asynchronous concurrent programming based on the actor model
 * `asserts` provides routines for assertions helpful in unit tests and but also input validation
 * `capture` allows to capture the output on STDOUT and STDERR; useful for testing
+* `dynaj` helps to work with JSO document without marshalling into a static struct
 * `environments` lets you set environment variables or create temporary directories for tests
 * `generators` provides a generator for random data, typially used in tests
+* `matcher` matches strings against patterns, like regular expressions, only simpler
 * `slices` provides a powerful set of functions for slices based on generics
 * `wait` helps you to wait for certain conditions by polling; additionally it conaints a throttle
 
