@@ -1,0 +1,4 @@
+tideland.dev/go/stew/asserts v0.0.0-20230630194713-325e15e4eb39 h1:WLbRG/+hfeM+yNFGvRcKjI22dNvRqf5hleVJxCwAEE0=
+tideland.dev/go/stew/asserts v0.0.0-20230630194713-325e15e4eb39/go.mod h1:qRwLftaXSVh7mNrImrpi2qUO5udnbNqjyEe2IfvlG/Q=
+tideland.dev/go/stew/generators v0.0.0-20230630194713-325e15e4eb39 h1:eN7SibH9rdAnsAzV3HHBDaVQl6ZnYAmfPkeC+p0CfHg=
+tideland.dev/go/stew/generators v0.0.0-20230630194713-325e15e4eb39/go.mod h1:5LCJsbLWSR0946+oIDfRh+qPW05pCl5OsB90mL8Cr8U=
