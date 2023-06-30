@@ -10,7 +10,7 @@ on:
     branches: [ "main" ]
 
 env:
-  MODULES: asserts
+  MODULES: asserts capture environments generators
 
 jobs:
 
