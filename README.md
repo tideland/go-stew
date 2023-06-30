@@ -9,10 +9,9 @@
 
 ## Description
 
-**Tideland Go Stew** provides a delicious collection of useful Go packages for 
-many purposes. It's a kind of toolbox for the daily work of Go developers.
+**Tideland Go Stew** provides a good collection of useful Go packages, like a delicious stew. These are usefult for many purposes. It's a kind of toolbox for the daily work of Go developers.
 
-* `asserts` provides routines for assertions helpful in tests and validation
+* `asserts` provides routines for assertions helpful in unit tests and but also input validation
 
 I hope you like it. ;)
 
