@@ -16,6 +16,7 @@
 * `dynaj` helps to work with JSO document without marshalling into a static struct
 * `environments` lets you set environment variables or create temporary directories for tests
 * `generators` provides a generator for random data, typially used in tests
+* `jwt` implements JSON Web Tokens
 * `matcher` matches strings against patterns, like regular expressions, only simpler
 * `slices` provides a powerful set of functions for slices based on generics
 * `uuid` creates and parses UUIDs in the versions 1, 3, 4, and 5

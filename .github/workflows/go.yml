@@ -10,7 +10,7 @@ on:
     branches: [ "main" ]
 
 env:
-  MODULES: actor asserts capture dynaj environments generators matcher slices uuid wait
+  MODULES: actor asserts capture dynaj environments generators jwt matcher slices uuid wait
 
 jobs:
 
