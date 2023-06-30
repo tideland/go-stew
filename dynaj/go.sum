@@ -1,0 +1,4 @@
+tideland.dev/go/stew/asserts v0.0.0-20230630172718-629e8fa589c8 h1:qTNg77E4uisf8PxZIydXf7UaIKdtzJzTXMD4ZN7H2KE=
+tideland.dev/go/stew/asserts v0.0.0-20230630172718-629e8fa589c8/go.mod h1:qRwLftaXSVh7mNrImrpi2qUO5udnbNqjyEe2IfvlG/Q=
+tideland.dev/go/stew/matcher v0.0.0-20230630185314-c8aa337f9314 h1:hK/wNjAFMCibJiPg8qTqzOjJhomFWIJ2gPp10RpayOA=
+tideland.dev/go/stew/matcher v0.0.0-20230630185314-c8aa337f9314/go.mod h1:AUKPnNhz8WwtwibKcIV/7bYAD5X42/1IdcObynIeP90=
