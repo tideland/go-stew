@@ -10,10 +10,13 @@
 
 **Tideland Go Stew** provides a good collection of useful Go packages, like a delicious stew. These are usefult for many purposes. It's a kind of toolbox for the daily work of Go developers.
 
+* `actor` supports easier synchronous and asynchronous concurrent programming based on the actor model
 * `asserts` provides routines for assertions helpful in unit tests and but also input validation
 * `capture` allows to capture the output on STDOUT and STDERR; useful for testing
 * `environments` lets you set environment variables or create temporary directories for tests
 * `generators` provides a generator for random data, typially used in tests
+* `slices` provides a powerful set of functions for slices based on generics
+* `wait` helps you to wait for certain conditions by polling; additionally it conaints a throttle
 
 I hope you like it. ;)
 
