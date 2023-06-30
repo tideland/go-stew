@@ -23,6 +23,7 @@ jobs:
 
     - name: Build
       run: |
+        ls -la
         MODULES=$(go list -m all)
         for m in "${MODULES[@]}"; do
           MODULE=$(basename "${m}")
