@@ -10,7 +10,7 @@ on:
     branches: [ "main" ]
 
 env:
-  MODULES: (asserts capture environments generators)
+  MODULES: asserts capture environments generators
 
 jobs:
 
@@ -26,7 +26,8 @@ jobs:
 
     - name: Build
       run: |
-        for MODULE in "${{ env.MODULES }}"; do
+        for MODULE in ${{ env.MODULES }};
+        do
           cd "${MODULE}"
           go build -v .
           cd ..
@@ -34,7 +35,8 @@ jobs:
 
     - name: Test
       run: |
-        for MODULE in "${{ env.MODULES }}"; do
+        for MODULE in ${{ env.MODULES }};
+        do
           cd "${MODULE}"
           go test -v .
           cd ..
