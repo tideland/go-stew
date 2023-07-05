@@ -23,6 +23,46 @@ import (
 // TESTS
 //------------------------------
 
+// TestNil tests the Nil assertion.
+func TestNil(t *testing.T) {
+	stb := newSubTB()
+
+	var is []int
+	var ch chan int
+	var f func() bool
+
+	Assert(stb, Nil(nil), "should not fail")
+	Assert(stb, Nil(""), "should fail")
+	Assert(stb, Nil(&struct{}{}), "should not fail")
+	Assert(stb, Nil(is), "should not fail")
+	Assert(stb, Nil(ch), "should not fail")
+	Assert(stb, Nil([]int{1, 2, 3}), "should fail")
+	Assert(stb, Nil(f), "should not fail")
+
+	Assert(t, Equal(stb.Calls(), 7), "should be seven calls")
+	Assert(t, Equal(stb.Len(), 3), "should be three errors")
+}
+
+// TestNotNil tests the NotNil assertion.
+func TestNotNil(t *testing.T) {
+	stb := newSubTB()
+
+	var is []int
+	var ch chan int
+	var f func() bool
+
+	Assert(stb, NotNil(nil), "should fail")
+	Assert(stb, NotNil(""), "should not fail")
+	Assert(stb, NotNil(&struct{}{}), "should fail")
+	Assert(stb, NotNil(is), "should fail")
+	Assert(stb, NotNil(ch), "should fail")
+	Assert(stb, NotNil([]int{1, 2, 3}), "should not fail")
+	Assert(stb, NotNil(f), "should fail")
+
+	Assert(t, Equal(stb.Calls(), 7), "should be seven calls")
+	Assert(t, Equal(stb.Len(), 5), "should be five errors")
+}
+
 // TestOK tests the OK assertion.
 func TestOK(t *testing.T) {
 	stb := newSubTB()
@@ -53,6 +93,7 @@ func TestNotOK(t *testing.T) {
 	Assert(t, Equal(stb.Len(), 3), "should be three errors")
 }
 
+// TestTrue tests the True assertion.
 func TestTrue(t *testing.T) {
 	stb := newSubTB()
 	one := 1
@@ -64,6 +105,23 @@ func TestTrue(t *testing.T) {
 	Assert(stb, True(1 == 2), "should fail")
 	Assert(stb, True(foo == "foo"), "should not fail")
 	Assert(stb, True("foo" == "bar"), "should fail")
+
+	Assert(t, Equal(stb.Calls(), 6), "should be six calls")
+	Assert(t, Equal(stb.Len(), 3), "should be three errors")
+}
+
+// TestFalse tests the False assertion.
+func TestFalse(t *testing.T) {
+	stb := newSubTB()
+	one := 1
+	foo := "foo"
+
+	Assert(stb, False(true), "should fail")
+	Assert(stb, False(false), "should not fail")
+	Assert(stb, False(one == 1), "should fail")
+	Assert(stb, False(1 == 2), "should not fail")
+	Assert(stb, False(foo == "foo"), "should fail")
+	Assert(stb, False("foo" == "bar"), "should not fail")
 
 	Assert(t, Equal(stb.Calls(), 6), "should be six calls")
 	Assert(t, Equal(stb.Len(), 3), "should be three errors")
@@ -105,7 +163,7 @@ func TestLength(t *testing.T) {
 	Assert(stb, Length(ch, 2), "should have length 2")
 
 	Assert(t, Equal(stb.Calls(), 6), "should be six calls")
-	Assert(t, Equal(stb.Len(), 2), "should be one error")
+	Assert(t, Equal(stb.Len(), 2), "should be two errors")
 }
 
 //------------------------------

@@ -21,6 +21,22 @@ import (
 // INSPECTORS
 //------------------------------
 
+// inspectNil checks if obtained is nil in a safe way.
+func inspectNil(obtained any) (bool, error) {
+	if obtained == nil {
+		// Standard test.
+		return true, nil
+	}
+	// Some types have to be tested via reflection.
+	value := reflect.ValueOf(obtained)
+	kind := value.Kind()
+	switch kind {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
+		return value.IsNil(), nil
+	}
+	return false, fmt.Errorf("obtained %s cannot be nil", valueDescription(obtained))
+}
+
 // errable describes a type able to return an error state
 // with the method Err().
 type errable interface {

@@ -28,21 +28,51 @@ type SubTB interface {
 }
 
 // Assert executes the given assertion and fails a test if it returns false.
-func Assert(stb SubTB, assert Assertion, msg string) {
+func Assert(stb SubTB, assert Assertion, msg string) bool {
 	stb.Helper()
 	ok, info, err := assert()
 	if err != nil {
 		stb.Fatalf("error in assertion: %s (%s)", err.Error(), msg)
-		return
+		return false
 	}
 	if !ok {
 		stb.Errorf("assertion failed: %s (%s)", info, msg)
+		return false
 	}
+	return true
 }
 
 //------------------------------
 // ASSERTIONS
 //------------------------------
+
+// Nil asserts that a value is nil.
+func Nil(v any) Assertion {
+	return func() (bool, string, error) {
+		var ok bool
+		var err error
+		ok, err = inspectNil(v)
+		info := ""
+		if err != nil {
+			return false, "", err
+		}
+		if !ok {
+			info = typedValue(v) + " is not nil"
+		}
+		return ok, info, err
+	}
+}
+
+// NotNil asserts that a value is not nil.
+func NotNil(v any) Assertion {
+	return func() (bool, string, error) {
+		ok, info, err := Nil(v)()
+		if err != nil {
+			return false, "", err
+		}
+		return !ok, info, err
+	}
+}
 
 // OK asserts that a value is true, nil, 0, "", or no error.
 func OK(v any) Assertion {
