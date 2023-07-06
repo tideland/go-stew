@@ -49,70 +49,103 @@ func Assert(stb SubTB, assert Assertion, msg string) bool {
 // Nil asserts that a value is nil.
 func Nil(v any) Assertion {
 	return func() (bool, string, error) {
-		var ok bool
-		var err error
-		ok, err = inspectNil(v)
-		info := ""
+		isNil, err := inspectNil(v)
 		if err != nil {
 			return false, "", err
 		}
-		if !ok {
-			info = typedValue(v) + " is not nil"
+		if isNil {
+			return true, "", nil
 		}
-		return ok, info, err
+		return false, typedValue(v) + " is not nil", nil
 	}
 }
 
 // NotNil asserts that a value is not nil.
 func NotNil(v any) Assertion {
 	return func() (bool, string, error) {
-		ok, info, err := Nil(v)()
+		isNil, err := inspectNil(v)
 		if err != nil {
 			return false, "", err
 		}
-		return !ok, info, err
+		if isNil {
+			return false, typedValue(v) + " is nil", nil
+		}
+		return true, "", nil
 	}
 }
 
-// OK asserts that a value is true, nil, 0, "", or no error.
-func OK(v any) Assertion {
+// Zero asserts that a value has its zero value.
+func Zero(v any) Assertion {
 	return func() (bool, string, error) {
+		var ok bool
 		var err error
-		ok := false
+		ok, err = inspectZero(v)
 		info := ""
-		switch obtained := v.(type) {
-		case bool:
-			ok = obtained
-		case int:
-			ok = obtained == 0
-		case string:
-			ok = obtained == ""
-		case error:
-			ok = obtained == nil
-		case func() bool:
-			ok = obtained()
-		case func() error:
-			ok = obtained() == nil
-		default:
-			var oerr error
-			oerr, err = inspctError(obtained)
-			if err != nil {
-				return false, "", err
-			}
-			ok = oerr == nil
+		if err != nil {
+			return false, "", err
+		}
+		if !ok {
+			info = typedValue(v) + " is not zero"
 		}
 		return ok, info, err
 	}
 }
 
-// NotOK asserts that a value is false, not nil, not 0, not "", or an error.
-func NotOK(v any) Assertion {
+// OK asserts that a value is true, nil, 0, "", no error or a function returning true
+// or a nil error.
+func OK(v any) Assertion {
 	return func() (bool, string, error) {
-		ok, info, err := OK(v)()
+		ok, err := inspectOK(v)
 		if err != nil {
 			return false, "", err
 		}
-		return !ok, info, err
+		return ok, "", err
+	}
+}
+
+// NotOK asserts that a value is false, not nil, not 0, not "", an error or a function
+// returning false or a non-nil error.
+func NotOK(v any) Assertion {
+	return func() (bool, string, error) {
+		ok, err := inspectOK(v)
+		if err != nil {
+			return false, "", err
+		}
+		return !ok, "", err
+	}
+}
+
+// AnyError asserts that a value is an error or a function returning an error.
+func AnyError(v any) Assertion {
+	return func() (bool, string, error) {
+		var ierr, err error
+		ierr, err = inspectError(v)
+		ok := ierr != nil
+		info := ""
+		if err != nil {
+			return false, "", err
+		}
+		if !ok {
+			info = typedValue(v) + " is or returns no error"
+		}
+		return ok, info, err
+	}
+}
+
+// NoError asserts that a value is no error or a function returning a nil error.
+func NoError(v any) Assertion {
+	return func() (bool, string, error) {
+		var ierr, err error
+		ierr, err = inspectError(v)
+		ok := ierr == nil
+		info := ""
+		if err != nil {
+			return false, "", err
+		}
+		if !ok {
+			info = typedValue(v) + " is or returns an error"
+		}
+		return ok, info, err
 	}
 }
 
@@ -137,11 +170,18 @@ func True(v any) Assertion {
 // False asserts that a value is false.
 func False(v any) Assertion {
 	return func() (bool, string, error) {
-		ok, info, err := True(v)()
-		if err != nil {
-			return false, "", err
+		var err error
+		ok := false
+		info := ""
+		switch obtained := v.(type) {
+		case bool:
+			ok = !obtained
+		case func() bool:
+			ok = !obtained()
+		default:
+			info = typedValue(v) + " is not false"
 		}
-		return !ok, info, err
+		return ok, info, err
 	}
 }
 
@@ -154,7 +194,20 @@ func Equal[T comparable](va, vb T) Assertion {
 		if !ok {
 			info = typedValue(va) + " is not equal to " + typedValue(vb)
 		}
-		return va == vb, info, err
+		return ok, info, err
+	}
+}
+
+// Different asserts that two comparable values are different.
+func Different[T comparable](va, vb T) Assertion {
+	return func() (bool, string, error) {
+		var err error
+		ok := va != vb
+		info := ""
+		if !ok {
+			info = typedValue(va) + " is equal to " + typedValue(vb)
+		}
+		return ok, info, err
 	}
 }
 

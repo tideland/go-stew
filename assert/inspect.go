@@ -37,30 +37,93 @@ func inspectNil(obtained any) (bool, error) {
 	return false, fmt.Errorf("obtained %s cannot be nil", valueDescription(obtained))
 }
 
+// inspectZero checks if obtained is the zero value of its type.
+func inspectZero(obtained any) (bool, error) {
+	value := reflect.ValueOf(obtained)
+	kind := value.Kind()
+	switch kind {
+	case reflect.Func, reflect.Interface, reflect.Ptr:
+		return value.IsNil(), nil
+	case reflect.Chan, reflect.Map, reflect.Slice:
+		if value.IsNil() {
+			return true, nil
+		}
+		l := value.Len()
+		return l == 0, nil
+	case reflect.Array:
+		l := value.Len()
+		return l == 0, nil
+	case reflect.Bool:
+		return !value.Bool(), nil
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return value.Int() == 0, nil
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return value.Uint() == 0, nil
+	case reflect.Float32, reflect.Float64:
+		return value.Float() == 0.0, nil
+	case reflect.Complex64, reflect.Complex128:
+		return value.Complex() == 0.0, nil
+	case reflect.String:
+		return value.String() == "", nil
+	}
+	return false, fmt.Errorf("obtained %s cannot be zero", valueDescription(obtained))
+}
+
 // errable describes a type able to return an error state
 // with the method Err().
 type errable interface {
 	Err() error
 }
 
-// inspctError converts an any variable into an error.
-func inspctError(obtained any) (error, error) {
-	if obtained == nil {
-		return nil, nil
+// inspectOK checks if obtained is ok in a safe way.
+func inspectOK(obtained any) (bool, error) {
+	var ok bool
+	var err error
+	switch value := obtained.(type) {
+	case bool:
+		ok = value
+	case int:
+		ok = value == 0
+	case string:
+		ok = value == ""
+	case error:
+		ok = value == nil
+	case func() bool:
+		ok = value()
+	case func() error:
+		ok = value() == nil
+	default:
+		var oerr error
+		oerr, err = inspectError(obtained)
+		if err != nil {
+			return false, err
+		}
+		ok = oerr == nil
 	}
-	err, ok := obtained.(error)
-	if ok {
-		return err, nil
-	}
-	able, ok := obtained.(errable)
-	if ok {
-		if able == nil {
+	return ok, nil
+}
+
+// inspectError checks if obtained is an error in a safe way.
+func inspectError(obtained any) (error, error) {
+	switch v := obtained.(type) {
+	case error:
+		if v == nil {
 			return nil, nil
 		}
-		return able.Err(), nil
+		return v, nil
+	case func() error:
+		if v == nil {
+			return nil, nil
+		}
+		return v(), nil
+	case errable:
+		if v == nil {
+			return nil, nil
+		}
+		return v.Err(), nil
+	default:
+		return nil, fmt.Errorf("no error or errable: %T", valueDescription(obtained))
 	}
-	// No error and not errable, so return error about it.
-	return nil, fmt.Errorf("no error or errable: %T", valueDescription(obtained))
 }
 
 // lenable is used to check if a type has a Len() method.
