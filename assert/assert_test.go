@@ -36,9 +36,9 @@ func TestNil(t *testing.T) {
 	Assert(stb, Nil(ch), "channel")
 	Assert(stb, Nil(f), "function")
 
-	Assert(stb, Nil(""), "empty string")
-	Assert(stb, Nil(&struct{}{}), "referenced struct")
-	Assert(stb, Nil([]int{1, 2, 3}), "filled slice")
+	Assert(stb, Nil(""), "empty string (fail)")
+	Assert(stb, Nil(&struct{}{}), "referenced struct (fail)")
+	Assert(stb, Nil([]int{1, 2, 3}), "filled slice (fail)")
 
 	Assert(t, Equal(stb.Calls(), 7), "should be seven calls")
 	Assert(t, Equal(stb.Len(), 3), "should be three fails")
@@ -55,10 +55,10 @@ func TestNotNil(t *testing.T) {
 	Assert(stb, NotNil(&struct{}{}), "referenced struct")
 	Assert(stb, NotNil([]int{1, 2, 3}), "filled slice")
 
-	Assert(stb, NotNil(nil), "nil")
-	Assert(stb, NotNil(is), "empty slice")
-	Assert(stb, NotNil(ch), "channel")
-	Assert(stb, NotNil(f), "function")
+	Assert(stb, NotNil(nil), "nil (fail)")
+	Assert(stb, NotNil(is), "empty slice (fail)")
+	Assert(stb, NotNil(ch), "channel (fail)")
+	Assert(stb, NotNil(f), "function (fail)")
 
 	Assert(t, Equal(stb.Calls(), 6), "should be seven calls")
 	Assert(t, Equal(stb.Len(), 4), "should be five fails")
@@ -81,11 +81,11 @@ func TestZero(t *testing.T) {
 	Assert(stb, Zero([]int{}), "empty slice")
 	Assert(stb, Zero(f), "function")
 
-	Assert(stb, Zero(true), "true")
-	Assert(stb, Zero(1), "1")
-	Assert(stb, Zero(1.0), "1.0")
-	Assert(stb, Zero("foo"), "filled string")
-	Assert(stb, Zero([]int{1, 2, 3}), "filled slice")
+	Assert(stb, Zero(true), "true (fail)")
+	Assert(stb, Zero(1), "1 (fail)")
+	Assert(stb, Zero(1.0), "1.0 (fail)")
+	Assert(stb, Zero("foo"), "filled string (fail)")
+	Assert(stb, Zero([]int{1, 2, 3}), "filled slice (fail)")
 
 	Assert(t, Equal(stb.Calls(), 13), "should be thirteen calls")
 	Assert(t, Equal(stb.Len(), 5), "should be five fails")
@@ -99,8 +99,8 @@ func TestOK(t *testing.T) {
 	Assert(stb, OK(func() bool { return true }), "function returning true")
 	Assert(stb, OK(func() error { return nil }), "function returning nil error")
 
-	Assert(stb, OK(1), "1")
-	Assert(stb, OK(interfacor("ouch")), "error")
+	Assert(stb, OK(1), "1 (fail)")
+	Assert(stb, OK(interfacor("ouch")), "error (fail)")
 
 	Assert(t, Equal(stb.Calls(), 5), "should be five calls")
 	Assert(t, Equal(stb.Len(), 2), "should be two fails")
@@ -114,9 +114,9 @@ func TestNotOK(t *testing.T) {
 	Assert(stb, NotOK(fmt.Errorf("error")), "error")
 	Assert(stb, NotOK(func() bool { return false }), "function returning false")
 
-	Assert(stb, NotOK(nil), "nil")
-	Assert(stb, NotOK(""), "empty string")
-	Assert(stb, NotOK(func() error { return nil }), "function returning nil error")
+	Assert(stb, NotOK(nil), "nil (fail)")
+	Assert(stb, NotOK(""), "empty string (fail)")
+	Assert(stb, NotOK(func() error { return nil }), "function returning nil error (fail)")
 
 	Assert(t, Equal(stb.Calls(), 6), "should be six calls")
 	Assert(t, Equal(stb.Len(), 3), "should be three fails")
@@ -129,8 +129,8 @@ func TestAnyError(t *testing.T) {
 	Assert(stb, AnyError(interfacor("ouch")), "error")
 	Assert(stb, AnyError(func() error { return fmt.Errorf("error") }), "function returning error")
 
-	Assert(stb, AnyError(nil), "nil")
-	Assert(stb, AnyError(func() error { return nil }), "function returning nil error")
+	Assert(stb, AnyError(nil), "nil (fail)")
+	Assert(stb, AnyError(func() error { return nil }), "function returning nil error (fail)")
 
 	Assert(t, Equal(stb.Calls(), 4), "should be four calls")
 	Assert(t, Equal(stb.Len(), 2), "should be two fails")
@@ -143,9 +143,9 @@ func TestErrorContains(t *testing.T) {
 	Assert(stb, ErrorContains(interfacor("ouch"), "ouch"), "error")
 	Assert(stb, ErrorContains(func() error { return fmt.Errorf("ouch") }, "ouch"), "function returning error")
 
-	Assert(stb, ErrorContains(nil, "ouch"), "nil")
-	Assert(stb, ErrorContains(interfacor("nope"), "ouch"), "error")
-	Assert(stb, ErrorContains(func() error { return nil }, "ouch"), "function returning nil error")
+	Assert(stb, ErrorContains(nil, "ouch"), "nil (fail)")
+	Assert(stb, ErrorContains(interfacor("nope"), "ouch"), "error (fail)")
+	Assert(stb, ErrorContains(func() error { return nil }, "ouch"), "function returning nil error (fail)")
 
 	Assert(t, Equal(stb.Calls(), 5), "should be four calls")
 	Assert(t, Equal(stb.Len(), 3), "should be two fails")
@@ -158,9 +158,9 @@ func TestErrorMatches(t *testing.T) {
 	Assert(stb, ErrorMatches(interfacor("ERR ouch 123"), ".*ouch.*"), "error")
 	Assert(stb, ErrorMatches(func() error { return fmt.Errorf("ERR ouch 123") }, ".*ouch.*"), "function returning error")
 
-	Assert(stb, ErrorMatches(nil, "ouch"), "nil")
-	Assert(stb, ErrorMatches(interfacor("nope"), "ouch"), "error")
-	Assert(stb, ErrorMatches(func() error { return nil }, "ouch"), "function returning nil error")
+	Assert(stb, ErrorMatches(nil, "ouch"), "nil (fail)")
+	Assert(stb, ErrorMatches(interfacor("nope"), "ouch"), "error (fail)")
+	Assert(stb, ErrorMatches(func() error { return nil }, "ouch"), "function returning nil error (fail)")
 
 	Assert(t, Equal(stb.Calls(), 5), "should be four calls")
 	Assert(t, Equal(stb.Len(), 3), "should be two fails")
@@ -174,8 +174,8 @@ func TestNoError(t *testing.T) {
 
 	err := interfacor("ouch")
 
-	Assert(stb, NoError(err), "error")
-	Assert(stb, NoError(fmt.Errorf("error")), "function returning error")
+	Assert(stb, NoError(err), "error (fail)")
+	Assert(stb, NoError(fmt.Errorf("error")), "function returning error (fail)")
 
 	Assert(t, Equal(stb.Calls(), 3), "should be three calls")
 	Assert(t, Equal(stb.Len(), 2), "should be two fails")
@@ -191,9 +191,9 @@ func TestTrue(t *testing.T) {
 	Assert(stb, True(one == 1), "positive int comparison")
 	Assert(stb, True(foo == "foo"), "positive string comparison")
 
-	Assert(stb, True(false), "false")
-	Assert(stb, True(1 == 2), "negative int comparison")
-	Assert(stb, True("foo" == "bar"), "negative string comparison")
+	Assert(stb, True(false), "false (fail)")
+	Assert(stb, True(1 == 2), "negative int comparison (fail)")
+	Assert(stb, True("foo" == "bar"), "negative string comparison (fail)")
 
 	Assert(t, Equal(stb.Calls(), 6), "should be six calls")
 	Assert(t, Equal(stb.Len(), 3), "should be three fails")
@@ -209,9 +209,9 @@ func TestFalse(t *testing.T) {
 	Assert(stb, False(1 == 2), "negative int comparison")
 	Assert(stb, False("foo" == "bar"), "negative string comparison")
 
-	Assert(stb, False(true), "true")
-	Assert(stb, False(one == 1), "positive int comparison")
-	Assert(stb, False(foo == "foo"), "positive string comparison")
+	Assert(stb, False(true), "true (fail)")
+	Assert(stb, False(one == 1), "positive int comparison (fail)")
+	Assert(stb, False(foo == "foo"), "positive string comparison (fail)")
 
 	Assert(t, Equal(stb.Calls(), 6), "should be six calls")
 	Assert(t, Equal(stb.Len(), 3), "should be three fails")
@@ -228,8 +228,8 @@ func TestEqual(t *testing.T) {
 	Assert(stb, Equal("foo", "foo"), "equal strings")
 	Assert(stb, Equal(foo, "foo"), "equal strings with variable")
 
-	Assert(stb, Equal(1, 2), "different ints")
-	Assert(stb, Equal("foo", "bar"), "different strings")
+	Assert(stb, Equal(1, 2), "different ints (fail)")
+	Assert(stb, Equal("foo", "bar"), "different strings (fail)")
 
 	Assert(t, Equal(stb.Calls(), 6), "should be six calls")
 	Assert(t, Equal(stb.Len(), 2), "should be two fails")
@@ -244,10 +244,10 @@ func TestDifferent(t *testing.T) {
 	Assert(stb, Different(1, 2), "different ints")
 	Assert(stb, Different("foo", "bar"), "different strings")
 
-	Assert(stb, Different(1, 1), "equal ints")
-	Assert(stb, Different(one, 1), "equal ints with variable")
-	Assert(stb, Different("foo", "foo"), "equal strings")
-	Assert(stb, Different(foo, "foo"), "equal strings with variable")
+	Assert(stb, Different(1, 1), "equal ints (fail)")
+	Assert(stb, Different(one, 1), "equal ints with variable (fail)")
+	Assert(stb, Different("foo", "foo"), "equal strings (fail)")
+	Assert(stb, Different(foo, "foo"), "equal strings with variable (fail)")
 
 	Assert(t, Equal(stb.Calls(), 6), "should be six calls")
 	Assert(t, Equal(stb.Len(), 4), "should be four fails")
@@ -269,8 +269,8 @@ func TestLength(t *testing.T) {
 	Assert(stb, Length(l, 3), "lenable with value 3")
 	Assert(stb, Length(ch, 2), "channel with two values")
 
-	Assert(stb, Length(foo, 3), "wrong length for slice")
-	Assert(stb, Length(bar, 1), "wrong length for string")
+	Assert(stb, Length(foo, 3), "wrong length for slice (fail))")
+	Assert(stb, Length(bar, 1), "wrong length for string (fail)")
 
 	Assert(t, Equal(stb.Calls(), 6), "should be six calls")
 	Assert(t, Equal(stb.Len(), 2), "should be two fails")
@@ -292,10 +292,10 @@ func TestEmpty(t *testing.T) {
 	ch <- "foo"
 	ch <- "bar"
 
-	Assert(stb, Empty([]string{"foo"}), "non-empty slice")
-	Assert(stb, Empty("foo"), "non-empty string")
-	Assert(stb, Empty(interfacor("foo")), "non-empty lenable")
-	Assert(stb, Empty(ch), "non-empty channel")
+	Assert(stb, Empty([]string{"foo"}), "non-empty slice (fail)")
+	Assert(stb, Empty("foo"), "non-empty string (fail)")
+	Assert(stb, Empty(interfacor("foo")), "non-empty lenable (fail)")
+	Assert(stb, Empty(ch), "non-empty channel (fail)")
 
 	Assert(t, Equal(stb.Calls(), 8), "should be eight calls")
 	Assert(t, Equal(stb.Len(), 4), "should be four fails")
@@ -319,10 +319,10 @@ func TestNotEmpty(t *testing.T) {
 
 	ch = make(chan string, 3)
 
-	Assert(stb, NotEmpty(foo), "empty slice")
-	Assert(stb, NotEmpty(bar), "empty string")
-	Assert(stb, NotEmpty(l), "empty lenable")
-	Assert(stb, NotEmpty(ch), "empty channel")
+	Assert(stb, NotEmpty(foo), "empty slice	(fail)")
+	Assert(stb, NotEmpty(bar), "empty string (fail)")
+	Assert(stb, NotEmpty(l), "empty lenable (fail)")
+	Assert(stb, NotEmpty(ch), "empty channel (fail)")
 
 	Assert(t, Equal(stb.Calls(), 8), "should be eight calls")
 	Assert(t, Equal(stb.Len(), 4), "should be four fails")
@@ -341,8 +341,8 @@ func TestContains(t *testing.T) {
 	Assert(stb, Contains(ott, 2), "slice contains 2")
 	Assert(stb, Contains(ott, 3), "slice contains 3")
 
-	Assert(stb, Contains(fbb, "qux"), "slice does not contain string")
-	Assert(stb, Contains(ott, 4), "slice does not contain 4")
+	Assert(stb, Contains(fbb, "qux"), "slice does not contain string (fail)")
+	Assert(stb, Contains(ott, 4), "slice does not contain 4	(fail)")
 
 	Assert(t, Equal(stb.Calls(), 8), "should be eight calls")
 	Assert(t, Equal(stb.Len(), 2), "should be two fails")
@@ -357,12 +357,12 @@ func TestContainsNot(t *testing.T) {
 	Assert(stb, ContainsNot(fbb, "qux"), "slice does not contain string")
 	Assert(stb, ContainsNot(ott, 4), "slice does not contain 4")
 
-	Assert(stb, ContainsNot(fbb, "foo"), "slice contains foo")
-	Assert(stb, ContainsNot(fbb, "bar"), "slice contains bar")
-	Assert(stb, ContainsNot(fbb, "baz"), "slice contains baz")
-	Assert(stb, ContainsNot(ott, 1), "slice contains 1")
-	Assert(stb, ContainsNot(ott, 2), "slice contains 2")
-	Assert(stb, ContainsNot(ott, 3), "slice contains 3")
+	Assert(stb, ContainsNot(fbb, "foo"), "slice contains foo (fail)")
+	Assert(stb, ContainsNot(fbb, "bar"), "slice contains bar (fail)")
+	Assert(stb, ContainsNot(fbb, "baz"), "slice contains baz (fail)")
+	Assert(stb, ContainsNot(ott, 1), "slice contains 1 (fail)")
+	Assert(stb, ContainsNot(ott, 2), "slice contains 2 (fail)")
+	Assert(stb, ContainsNot(ott, 3), "slice contains 3 (fail)")
 
 	Assert(t, Equal(stb.Calls(), 8), "should be eight calls")
 	Assert(t, Equal(stb.Len(), 6), "should be six fails")
@@ -397,6 +397,19 @@ func TestRange(t *testing.T) {
 
 	Assert(t, Equal(stb.Calls(), 5), "should be five calls")
 	Assert(t, Equal(stb.Len(), 2), "should be two fails")
+}
+
+// TestOneCase tests the OneCase assertion for different types.
+func TestOneCase(t *testing.T) {
+	stb := newSubTB()
+
+	Assert(stb, OneCase("lower"), "lower")
+	Assert(stb, OneCase("UPPER"), "UPPER")
+
+	Assert(stb, OneCase("Mixed"), "Mixed (fail)")
+
+	Assert(t, Equal(stb.Calls(), 3), "should be three calls")
+	Assert(t, Equal(stb.Len(), 1), "should be one fail")
 }
 
 //------------------------------

@@ -369,4 +369,16 @@ func Range[T constraints.Integer | constraints.Float](v, min, max T) Assertion {
 	}
 }
 
+// OneCase asserts that a string is in one case.
+func OneCase(v string) Assertion {
+	return func() (bool, string, error) {
+		upper := strings.ToUpper(v)
+		lower := strings.ToLower(v)
+		if v == upper || v == lower {
+			return true, "", nil
+		}
+		return false, "not one case", nil
+	}
+}
+
 // EOF
