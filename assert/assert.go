@@ -11,6 +11,13 @@ package assert // import "tideland.dev/go/stew/assert"
 // IMPORTS
 //------------------------------
 
+import (
+	"regexp"
+	"strings"
+
+	"golang.org/x/exp/constraints"
+)
+
 //------------------------------
 // ASSERTION TYPE AND FUNCTION
 //------------------------------
@@ -115,7 +122,8 @@ func NotOK(v any) Assertion {
 	}
 }
 
-// AnyError asserts that a value is an error or a function returning an error.
+// AnyError asserts that a value is an error, a function returning an error or
+// a type implementing an Err() error method and the error is not nil.
 func AnyError(v any) Assertion {
 	return func() (bool, string, error) {
 		var ierr, err error
@@ -132,7 +140,51 @@ func AnyError(v any) Assertion {
 	}
 }
 
-// NoError asserts that a value is no error or a function returning a nil error.
+// ErrorContains asserts that a value is an error like in AnyError and the error
+// contains the given string.
+func ErrorContains(v any, contains string) Assertion {
+	return func() (bool, string, error) {
+		var ierr, err error
+		ierr, err = inspectError(v)
+		ok := ierr != nil
+		info := ""
+		if err != nil {
+			return false, "", err
+		}
+		if !ok {
+			info = typedValue(v) + " is or returns no error"
+		}
+		if ok && !strings.Contains(ierr.Error(), contains) {
+			info = typedValue(v) + " does not con	tain " + contains
+			ok = false
+		}
+		return ok, info, err
+	}
+}
+
+// ErrorMatches asserts that a value is an error like in AnyError and the error
+// matches the given regular expression.
+func ErrorMatches(v any, pattern string) Assertion {
+	return func() (bool, string, error) {
+		var ierr, err error
+		ierr, err = inspectError(v)
+		ok := ierr != nil
+		info := ""
+		if err != nil {
+			return false, "", err
+		}
+		if !ok {
+			info = typedValue(v) + " is or returns no error"
+		}
+		if ok && !regexp.MustCompile(pattern).MatchString(ierr.Error()) {
+			info = typedValue(v) + " does not match " + pattern
+			ok = false
+		}
+		return ok, info, err
+	}
+}
+
+// NoError asserts that a value is an error like in AnyError and the error is nil.
 func NoError(v any) Assertion {
 	return func() (bool, string, error) {
 		var ierr, err error
@@ -220,6 +272,98 @@ func Length(v any, l int) Assertion {
 		info := ""
 		if !ok {
 			info = typedValue(v) + " has not the expected length"
+		}
+		return ok, info, err
+	}
+}
+
+// Empty asserts that a value is empty.
+func Empty(v any) Assertion {
+	return func() (bool, string, error) {
+		var err error
+		obtained, err := inspctLength(v)
+		ok := obtained == 0
+		info := ""
+		if !ok {
+			info = typedValue(v) + " is not empty"
+		}
+		return ok, info, err
+	}
+}
+
+// NotEmpty asserts that a value is not empty.
+func NotEmpty(v any) Assertion {
+	return func() (bool, string, error) {
+		var err error
+		obtained, err := inspctLength(v)
+		ok := obtained != 0
+		info := ""
+		if !ok {
+			info = typedValue(v) + " is empty"
+		}
+		return ok, info, err
+	}
+}
+
+// Contains asserts that a slice contains a specific value.
+func Contains[S ~[]T, T comparable](vs S, content T) Assertion {
+	return func() (bool, string, error) {
+		var err error
+		ok := false
+		info := ""
+		for _, v := range vs {
+			if v == content {
+				ok = true
+				break
+			}
+		}
+		if !ok {
+			info = typedValue(vs) + " does not contain " + typedValue(content)
+		}
+		return ok, info, err
+	}
+}
+
+// ContainsNot asserts that a slice does not contain a specific value.
+func ContainsNot[S ~[]T, T comparable](vs S, content T) Assertion {
+	return func() (bool, string, error) {
+		var err error
+		ok := true
+		info := ""
+		for _, v := range vs {
+			if v == content {
+				ok = false
+				break
+			}
+		}
+		if !ok {
+			info = typedValue(vs) + " contains " + typedValue(content)
+		}
+		return ok, info, err
+	}
+}
+
+// About asserts that two numbers are about equal within a delta.
+func About[T constraints.Integer | constraints.Float](va, vb, delta T) Assertion {
+	return func() (bool, string, error) {
+		var err error
+		ok := va >= vb-delta && va <= vb+delta
+		info := ""
+		if !ok {
+			info = typedValue(va) + " is not about equal to " + typedValue(vb)
+		}
+		return ok, info, err
+	}
+}
+
+// Range asserts that a number is in a range.
+func Range[T constraints.Integer | constraints.Float](v, min, max T) Assertion {
+	return func() (bool, string, error) {
+		var err error
+		ok := v >= min && v <= max
+		info := ""
+		if !ok {
+			info = typedValue(v) + " is not in range [" + typedValue(min) + ", " + typedValue(max) + "]"
 		}
 		return ok, info, err
 	}

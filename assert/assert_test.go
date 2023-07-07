@@ -136,6 +136,36 @@ func TestAnyError(t *testing.T) {
 	Assert(t, Equal(stb.Len(), 2), "should be two fails")
 }
 
+// TestErrorContains tests the ErrorContains assertion.
+func TestErrorContains(t *testing.T) {
+	stb := newSubTB()
+
+	Assert(stb, ErrorContains(interfacor("ouch"), "ouch"), "error")
+	Assert(stb, ErrorContains(func() error { return fmt.Errorf("ouch") }, "ouch"), "function returning error")
+
+	Assert(stb, ErrorContains(nil, "ouch"), "nil")
+	Assert(stb, ErrorContains(interfacor("nope"), "ouch"), "error")
+	Assert(stb, ErrorContains(func() error { return nil }, "ouch"), "function returning nil error")
+
+	Assert(t, Equal(stb.Calls(), 5), "should be four calls")
+	Assert(t, Equal(stb.Len(), 3), "should be two fails")
+}
+
+// TestErrorMatches tests the ErrorMatches assertion.
+func TestErrorMatches(t *testing.T) {
+	stb := newSubTB()
+
+	Assert(stb, ErrorMatches(interfacor("ERR ouch 123"), ".*ouch.*"), "error")
+	Assert(stb, ErrorMatches(func() error { return fmt.Errorf("ERR ouch 123") }, ".*ouch.*"), "function returning error")
+
+	Assert(stb, ErrorMatches(nil, "ouch"), "nil")
+	Assert(stb, ErrorMatches(interfacor("nope"), "ouch"), "error")
+	Assert(stb, ErrorMatches(func() error { return nil }, "ouch"), "function returning nil error")
+
+	Assert(t, Equal(stb.Calls(), 5), "should be four calls")
+	Assert(t, Equal(stb.Len(), 3), "should be two fails")
+}
+
 // TestNoError tests the NoError assertion.
 func TestNoError(t *testing.T) {
 	stb := newSubTB()
@@ -243,6 +273,129 @@ func TestLength(t *testing.T) {
 	Assert(stb, Length(bar, 1), "wrong length for string")
 
 	Assert(t, Equal(stb.Calls(), 6), "should be six calls")
+	Assert(t, Equal(stb.Len(), 2), "should be two fails")
+}
+
+// TestEmpty tests the Empty assertion for different types.
+func TestEmpty(t *testing.T) {
+	stb := newSubTB()
+	foo := []string{}
+	bar := ""
+	l := interfacor("")
+	ch := make(chan string, 3)
+
+	Assert(stb, Empty(foo), "empty slice")
+	Assert(stb, Empty(bar), "empty string")
+	Assert(stb, Empty(l), "empty lenable")
+	Assert(stb, Empty(ch), "empty channel")
+
+	ch <- "foo"
+	ch <- "bar"
+
+	Assert(stb, Empty([]string{"foo"}), "non-empty slice")
+	Assert(stb, Empty("foo"), "non-empty string")
+	Assert(stb, Empty(interfacor("foo")), "non-empty lenable")
+	Assert(stb, Empty(ch), "non-empty channel")
+
+	Assert(t, Equal(stb.Calls(), 8), "should be eight calls")
+	Assert(t, Equal(stb.Len(), 4), "should be four fails")
+}
+
+// TestNotEmpty tests the NotEmpty assertion for different types.
+func TestNotEmpty(t *testing.T) {
+	stb := newSubTB()
+	foo := []string{}
+	bar := ""
+	l := interfacor("")
+	ch := make(chan string, 3)
+
+	ch <- "foo"
+	ch <- "bar"
+
+	Assert(stb, NotEmpty([]string{"foo"}), "non-empty slice")
+	Assert(stb, NotEmpty("foo"), "non-empty string")
+	Assert(stb, NotEmpty(interfacor("foo")), "non-empty lenable")
+	Assert(stb, NotEmpty(ch), "non-empty channel")
+
+	ch = make(chan string, 3)
+
+	Assert(stb, NotEmpty(foo), "empty slice")
+	Assert(stb, NotEmpty(bar), "empty string")
+	Assert(stb, NotEmpty(l), "empty lenable")
+	Assert(stb, NotEmpty(ch), "empty channel")
+
+	Assert(t, Equal(stb.Calls(), 8), "should be eight calls")
+	Assert(t, Equal(stb.Len(), 4), "should be four fails")
+}
+
+// TestContains tests the Contains assertion for different types.
+func TestContains(t *testing.T) {
+	stb := newSubTB()
+	fbb := []string{"foo", "bar", "baz"}
+	ott := []int{1, 2, 3}
+
+	Assert(stb, Contains(fbb, "foo"), "slice contains foo")
+	Assert(stb, Contains(fbb, "bar"), "slice contains bar")
+	Assert(stb, Contains(fbb, "baz"), "slice contains baz")
+	Assert(stb, Contains(ott, 1), "slice contains 1")
+	Assert(stb, Contains(ott, 2), "slice contains 2")
+	Assert(stb, Contains(ott, 3), "slice contains 3")
+
+	Assert(stb, Contains(fbb, "qux"), "slice does not contain string")
+	Assert(stb, Contains(ott, 4), "slice does not contain 4")
+
+	Assert(t, Equal(stb.Calls(), 8), "should be eight calls")
+	Assert(t, Equal(stb.Len(), 2), "should be two fails")
+}
+
+// TestContainsNot tests the ContainsNot assertion for different types.
+func TestContainsNot(t *testing.T) {
+	stb := newSubTB()
+	fbb := []string{"foo", "bar", "baz"}
+	ott := []int{1, 2, 3}
+
+	Assert(stb, ContainsNot(fbb, "qux"), "slice does not contain string")
+	Assert(stb, ContainsNot(ott, 4), "slice does not contain 4")
+
+	Assert(stb, ContainsNot(fbb, "foo"), "slice contains foo")
+	Assert(stb, ContainsNot(fbb, "bar"), "slice contains bar")
+	Assert(stb, ContainsNot(fbb, "baz"), "slice contains baz")
+	Assert(stb, ContainsNot(ott, 1), "slice contains 1")
+	Assert(stb, ContainsNot(ott, 2), "slice contains 2")
+	Assert(stb, ContainsNot(ott, 3), "slice contains 3")
+
+	Assert(t, Equal(stb.Calls(), 8), "should be eight calls")
+	Assert(t, Equal(stb.Len(), 6), "should be six fails")
+}
+
+// TestAbout tests the About assertion for different types.
+func TestAbout(t *testing.T) {
+	stb := newSubTB()
+
+	Assert(stb, About(1.0, 1.0, 0.0), "1.0 ≈ 1.0")
+	Assert(stb, About(1.0, 1.0, 0.1), "1.0 ≈ 1.0 ± 0.1")
+	Assert(stb, About(1.0, 1.1, 0.1), "1.0 ≈ 1.1 ± 0.1")
+	Assert(stb, About(100, 90, 10), "100 ≈ 90 ± 10")
+
+	Assert(stb, About(1.0, 1.2, 0.1), "1.0 ≈ 1.2 ± 0.1 (fail)")
+	Assert(stb, About(100, 80, 10), "100 ≈ 80 ± 10 (fail)")
+
+	Assert(t, Equal(stb.Calls(), 6), "should be six calls")
+	Assert(t, Equal(stb.Len(), 2), "should be two fails")
+}
+
+// TestRange tests the Range assertion for different types.
+func TestRange(t *testing.T) {
+	stb := newSubTB()
+
+	Assert(stb, Range(10, 10, 10), "10 <= 10 <= 10")
+	Assert(stb, Range(10, 9, 11), "9 <= 10 <= 11")
+	Assert(stb, Range(1.0, 0.9, 1.1), "ß.9 <= 1.0 <= 1.1")
+
+	Assert(stb, Range(10, 15, 20), "15 <= 10 <= 20 (fail)")
+	Assert(stb, Range(1.0, 5.0, 10.0), "5.0 <= 1.0 <= 10.0 (fail)")
+
+	Assert(t, Equal(stb.Calls(), 5), "should be five calls")
 	Assert(t, Equal(stb.Len(), 2), "should be two fails")
 }
 
