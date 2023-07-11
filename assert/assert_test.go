@@ -181,6 +181,43 @@ func TestNoError(t *testing.T) {
 	Assert(t, Equal(stb.Len(), 2), "should be two fails")
 }
 
+// TestPanics tests the Panics assertion.
+func TestPanics(t *testing.T) {
+	stb := newSubTB()
+
+	Assert(stb, Panics(func() { panic("ouch") }), "function panics")
+
+	Assert(stb, Panics(func() {}), "function does not panic (fail)")
+
+	Assert(t, Equal(stb.Calls(), 2), "should be two calls")
+	Assert(t, Equal(stb.Len(), 1), "should be one fail")
+}
+
+// TestPanicsNot tests the PanicsNot assertion.
+func TestPanicsNot(t *testing.T) {
+	stb := newSubTB()
+
+	Assert(stb, PanicsNot(func() {}), "function does not panic")
+
+	Assert(stb, PanicsNot(func() { panic("ouch") }), "function panics (fail)")
+
+	Assert(t, Equal(stb.Calls(), 2), "should be two calls")
+	Assert(t, Equal(stb.Len(), 1), "should be one fail")
+}
+
+// TestPanicsWith tests the PanicsWith assertion.
+func TestPanicsWith(t *testing.T) {
+	stb := newSubTB()
+
+	Assert(stb, PanicsWith(func() { panic("ouch") }, "ouch"), "function panics with expected value")
+
+	Assert(stb, PanicsWith(func() { panic("ouch") }, "nope"), "function panics with unexpected value (fail)")
+	Assert(stb, PanicsWith(func() {}, "ouch"), "function does not panic (fail)")
+
+	Assert(t, Equal(stb.Calls(), 3), "should be four calls")
+	Assert(t, Equal(stb.Len(), 2), "should be two fails")
+}
+
 // TestTrue tests the True assertion.
 func TestTrue(t *testing.T) {
 	stb := newSubTB()
@@ -399,7 +436,7 @@ func TestRange(t *testing.T) {
 	Assert(t, Equal(stb.Len(), 2), "should be two fails")
 }
 
-// TestOneCase tests the OneCase assertion for different types.
+// TestOneCase tests the OneCase assertion.
 func TestOneCase(t *testing.T) {
 	stb := newSubTB()
 
@@ -410,6 +447,21 @@ func TestOneCase(t *testing.T) {
 
 	Assert(t, Equal(stb.Calls(), 3), "should be three calls")
 	Assert(t, Equal(stb.Len(), 1), "should be one fail")
+}
+
+// TestMatches tests the Matches assertion.
+func TestMatches(t *testing.T) {
+	stb := newSubTB()
+
+	Assert(stb, Matches("foo", "foo"), "foo matches foo")
+	Assert(stb, Matches("foo", "foo|bar"), "foo matches foo|bar")
+	Assert(stb, Matches("bar", "foo|bar"), "bar matches foo|bar")
+
+	Assert(stb, Matches("foo", "bar"), "foo matches bar (fail)")
+	Assert(stb, Matches("bar", "foo"), "bar matches foo (fail)")
+
+	Assert(t, Equal(stb.Calls(), 5), "should be five calls")
+	Assert(t, Equal(stb.Len(), 2), "should be two fails")
 }
 
 //------------------------------

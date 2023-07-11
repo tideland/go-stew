@@ -12,6 +12,7 @@ package assert // import "tideland.dev/go/stew/assert"
 //------------------------------
 
 import (
+	"reflect"
 	"regexp"
 	"strings"
 
@@ -201,6 +202,57 @@ func NoError(v any) Assertion {
 	}
 }
 
+// Panics asserts that a function panics.
+func Panics(pf func()) Assertion {
+	return func() (bool, string, error) {
+		tf := func() (ok bool) {
+			defer func() {
+				if r := recover(); r != nil {
+					ok = true
+				}
+			}()
+			pf()
+			return false
+		}
+		ok := tf()
+		return ok, "", nil
+	}
+}
+
+// PanicsNot asserts that a function does not panic.
+func PanicsNot(pf func()) Assertion {
+	return func() (bool, string, error) {
+		tf := func() (ok bool) {
+			defer func() {
+				if r := recover(); r != nil {
+					ok = true
+				}
+			}()
+			pf()
+			return false
+		}
+		ok := !tf()
+		return ok, "", nil
+	}
+}
+
+// PanicsWith asserts that a function panics with a given value.
+func PanicsWith(pf func(), v any) Assertion {
+	return func() (bool, string, error) {
+		tf := func() (ok bool) {
+			defer func() {
+				if r := recover(); r != nil {
+					ok = reflect.DeepEqual(r, v)
+				}
+			}()
+			pf()
+			return false
+		}
+		ok := tf()
+		return ok, "", nil
+	}
+}
+
 // True asserts that a value is true.
 func True(v any) Assertion {
 	return func() (bool, string, error) {
@@ -378,6 +430,19 @@ func OneCase(v string) Assertion {
 			return true, "", nil
 		}
 		return false, "not one case", nil
+	}
+}
+
+// Matches asserts that a string matches a regular expression.
+func Matches(v, re string) Assertion {
+	return func() (bool, string, error) {
+		var err error
+		ok, err := regexp.MatchString(re, v)
+		info := ""
+		if !ok {
+			info = typedValue(v) + " does not match " + typedValue(re)
+		}
+		return ok, info, err
 	}
 }
 
