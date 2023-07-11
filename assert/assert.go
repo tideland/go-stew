@@ -12,6 +12,8 @@ package assert // import "tideland.dev/go/stew/assert"
 //------------------------------
 
 import (
+	"fmt"
+	"os"
 	"reflect"
 	"regexp"
 	"strings"
@@ -189,14 +191,17 @@ func ErrorMatches(v any, pattern string) Assertion {
 func NoError(v any) Assertion {
 	return func() (bool, string, error) {
 		var ierr, err error
-		ierr, err = inspectError(v)
-		ok := ierr == nil
+		ok := true
 		info := ""
+		if v != nil {
+			ierr, err = inspectError(v)
+			ok = ierr == nil
+		}
 		if err != nil {
 			return false, "", err
 		}
 		if !ok {
-			info = typedValue(v) + " is or returns an error"
+			info = typedValue(v) + " is or returns an error: " + ierr.Error()
 		}
 		return ok, info, err
 	}
@@ -214,8 +219,12 @@ func Panics(pf func()) Assertion {
 			pf()
 			return false
 		}
+		info := ""
 		ok := tf()
-		return ok, "", nil
+		if !ok {
+			info = "function did not panic"
+		}
+		return ok, info, nil
 	}
 }
 
@@ -231,8 +240,12 @@ func PanicsNot(pf func()) Assertion {
 			pf()
 			return false
 		}
+		info := ""
 		ok := !tf()
-		return ok, "", nil
+		if !ok {
+			info = "function did panic"
+		}
+		return ok, info, nil
 	}
 }
 
@@ -248,8 +261,12 @@ func PanicsWith(pf func(), v any) Assertion {
 			pf()
 			return false
 		}
+		info := ""
 		ok := tf()
-		return ok, "", nil
+		if !ok {
+			info = "function did not panic or panic value is not equal"
+		}
+		return ok, info, nil
 	}
 }
 
@@ -440,7 +457,23 @@ func Matches(v, re string) Assertion {
 		ok, err := regexp.MatchString(re, v)
 		info := ""
 		if !ok {
-			info = typedValue(v) + " does not match " + typedValue(re)
+			info = fmt.Sprintf("%q does not match %q", v, re)
+		}
+		return ok, info, err
+	}
+}
+
+// PathExists asserts that a path exists.
+func PathExists(v string) Assertion {
+	return func() (bool, string, error) {
+		var err error
+		ok := false
+		info := ""
+		if _, err := os.Stat(v); err == nil {
+			ok = true
+		}
+		if !ok {
+			info = fmt.Sprintf("path %q doas not exist", v)
 		}
 		return ok, info, err
 	}

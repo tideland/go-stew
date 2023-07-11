@@ -13,6 +13,8 @@ package assert_test
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"sync"
 	"testing"
 
@@ -462,6 +464,27 @@ func TestMatches(t *testing.T) {
 
 	Assert(t, Equal(stb.Calls(), 5), "should be five calls")
 	Assert(t, Equal(stb.Len(), 2), "should be two fails")
+}
+
+// TestPathExists tests the PathExists assertion.
+func TestPathExists(t *testing.T) {
+	stb := newSubTB()
+
+	dir := filepath.Join(os.TempDir(), "assert-path-exists")
+	err := os.Mkdir(dir, 0700)
+	Assert(stb, NoError(err), "create temporary test dir")
+	defer func() {
+		os.RemoveAll(dir)
+	}()
+
+	Assert(stb, PathExists(dir), "temporary test dir exists")
+
+	Assert(stb, PathExists("/this/path/will/hopefully/not/exist"), "path not exists (fail)")
+
+	Assert(t, Equal(stb.Calls(), 3), "should be four calls")
+	Assert(t, Equal(stb.Len(), 1), "should be two fails")
+
+	stb.LogFails(t)
 }
 
 //------------------------------
