@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 	"sync"
 	"testing"
+	"time"
 
 	. "tideland.dev/go/stew/assert"
 )
@@ -481,8 +482,111 @@ func TestPathExists(t *testing.T) {
 
 	Assert(stb, PathExists("/this/path/will/hopefully/not/exist"), "path not exists (fail)")
 
-	Assert(t, Equal(stb.Calls(), 3), "should be four calls")
-	Assert(t, Equal(stb.Len(), 1), "should be two fails")
+	Assert(t, Equal(stb.Calls(), 3), "should be three calls")
+	Assert(t, Equal(stb.Len(), 1), "should be one fail")
+}
+
+// TestChannelReceives tests the ChannelReceives assertion.
+func TestChannelReceives(t *testing.T) {
+	stb := newSubTB()
+
+	to := 100 * time.Millisecond
+	ch := make(chan int, 1)
+
+	ch <- 42
+
+	Assert(stb, ChannelReceives(ch, 42, to), "channel receives 42")
+
+	ch <- 42
+
+	Assert(stb, ChannelReceives(ch, 43, to), "channel receives 43 (fail)")
+
+	go func() {
+		time.Sleep(200 * time.Millisecond)
+		ch <- 43
+	}()
+
+	Assert(stb, ChannelReceives(ch, 43, to), "channel receives 43 after timeout (fail)")
+
+	Assert(t, Equal(stb.Calls(), 3), "should be three calls")
+	Assert(t, Equal(stb.Len(), 2), "should be two fails")
+}
+
+// TestChannelClosed tests the ChannelClosed assertion.
+func TestChannelClosed(t *testing.T) {
+	stb := newSubTB()
+
+	to := 100 * time.Millisecond
+	ch := make(chan int)
+
+	close(ch)
+
+	Assert(stb, ChannelClosed(ch, to), "channel closed")
+
+	ch = make(chan int)
+
+	go func() {
+		time.Sleep(75 * time.Millisecond)
+		close(ch)
+	}()
+
+	Assert(stb, ChannelClosed(ch, to), "channel closed asynchronously")
+
+	ch = make(chan int)
+
+	Assert(stb, ChannelClosed(ch, to), "timeout before closing (fail)")
+
+	Assert(t, Equal(stb.Calls(), 3), "should be three calls")
+	Assert(t, Equal(stb.Len(), 1), "should be one fail")
+}
+
+// TestGroupWaits tests the GroupWaits assertion.
+func TestGroupWaits(t *testing.T) {
+	stb := newSubTB()
+
+	to := 100 * time.Millisecond
+	wg := new(sync.WaitGroup)
+
+	wg.Add(4)
+
+	go func() {
+		for i := 0; i < 4; i++ {
+			time.Sleep(20 * time.Millisecond)
+			wg.Done()
+		}
+	}()
+
+	Assert(stb, GroupWaits(wg, to), "group waits")
+
+	wg.Add(1)
+	go func() {
+		time.Sleep(200 * time.Millisecond)
+		wg.Done()
+	}()
+
+	Assert(stb, GroupWaits(wg, to), "group waits after timeout (fail)")
+
+	Assert(t, Equal(stb.Calls(), 2), "should be two calls")
+	Assert(t, Equal(stb.Len(), 1), "should be one fail")
+}
+
+// TestRetries tests the Retries assertion.
+func TestRetries(t *testing.T) {
+	stb := newSubTB()
+
+	to := 100 * time.Millisecond
+	ws := func() { time.Sleep(20 * time.Millisecond) }
+	tf := func() (bool, error) { ws(); return true, nil }
+	ff := func() (bool, error) { ws(); return false, nil }
+	ef := func() (bool, error) { ws(); return false, fmt.Errorf("ouch") }
+
+	Assert(stb, Retries(tf, to), "retries true")
+
+	Assert(stb, Retries(ff, to), "retries false (fail)")
+	Assert(stb, Retries(ef, to), "retries with error (fail)")
+
+	Assert(t, Equal(stb.Calls(), 3), "should be three calls")
+	Assert(t, Equal(stb.Len(), 2), "should be two fails")
 
 	stb.LogFails(t)
 }

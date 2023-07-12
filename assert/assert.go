@@ -17,6 +17,8 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+	"sync"
+	"time"
 
 	"golang.org/x/exp/constraints"
 )
@@ -476,6 +478,78 @@ func PathExists(v string) Assertion {
 			info = fmt.Sprintf("path %q doas not exist", v)
 		}
 		return ok, info, err
+	}
+}
+
+// ChannelReceives asserts that a channel receives a wanted value within a timeout.
+func ChannelReceives[T comparable](ch <-chan T, expected T, timeout time.Duration) Assertion {
+	return func() (bool, string, error) {
+		select {
+		case v := <-ch:
+			if v != expected {
+				return false, fmt.Sprintf("received %v instead of %v", v, expected), nil
+			}
+			return true, "", nil
+		case <-time.After(timeout):
+			return false, fmt.Sprintf("timeout after %v", timeout), nil
+		}
+	}
+}
+
+// ChannelClosed asserts that a channel is closed within a timeout.
+func ChannelClosed[T any](ch <-chan T, timeout time.Duration) Assertion {
+	return func() (bool, string, error) {
+		done := time.NewTimer(timeout)
+		defer done.Stop()
+		for {
+			select {
+			case _, ok := <-ch:
+				if !ok {
+					return true, "", nil
+				}
+			case <-done.C:
+				return false, "timeout after " + timeout.String(), nil
+			}
+		}
+	}
+}
+
+// GroupWaits asserts that a wait group is done within a timeout.
+func GroupWaits(wg *sync.WaitGroup, timeout time.Duration) Assertion {
+	return func() (bool, string, error) {
+		doneCh := make(chan struct{})
+		go func() {
+			wg.Wait()
+			close(doneCh)
+		}()
+		select {
+		case <-doneCh:
+			return true, "", nil
+		case <-time.After(timeout):
+			return false, "timeout after " + timeout.String(), nil
+		}
+	}
+}
+
+// Retries asserts that a function returns true within a timeout.
+func Retries(f func() (bool, error), timeout time.Duration) Assertion {
+	return func() (bool, string, error) {
+		done := time.NewTimer(timeout)
+		defer done.Stop()
+		for {
+			select {
+			case <-done.C:
+				return false, "timeout after " + timeout.String(), nil
+			default:
+				ok, err := f()
+				if err != nil {
+					return false, "", err
+				}
+				if ok {
+					return true, "", nil
+				}
+			}
+		}
 	}
 }
 
