@@ -12,9 +12,11 @@ package dynaj_test
 //--------------------
 
 import (
+	"fmt"
 	"testing"
 
-	"tideland.dev/go/stew/asserts"
+	. "tideland.dev/go/stew/assert"
+
 	"tideland.dev/go/stew/dynaj"
 )
 
@@ -24,69 +26,69 @@ import (
 
 // TestCompare tests comparing two documents.
 func TestCompare(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-	first, _ := createDocument(assert)
-	second := createCompareDocument(assert)
+	first, _ := createDocument(t)
+	second := createCompareDocument(t)
 	firstDoc, err := dynaj.Unmarshal(first)
-	assert.NoError(err)
+	Assert(t, NoError(err), "first document unmarshalled")
 	secondDoc, err := dynaj.Unmarshal(second)
-	assert.NoError(err)
+	Assert(t, NoError(err), "second document unmarshalled")
 
 	diff, err := dynaj.Compare(first, first)
-	assert.NoError(err)
-	assert.Length(diff.Differences(), 0)
+	Assert(t, Length(diff.Differences(), 0), "first document compared with itself has no differences")
+	Assert(t, NoError(err), "first unmarshalled document compared with itself")
+	Assert(t, Empty(diff.Differences()), "first unmarshalled document compared with itself has no differences")
 
 	diff, err = dynaj.Compare(first, second)
-	assert.NoError(err)
-	assert.Length(diff.Differences(), 13)
+	Assert(t, NoError(err), "first unmarshalled document compared with second")
+	Assert(t, Length(diff.Differences(), 13), "first unmarshalled document compared with second has differences")
 
 	diff, err = dynaj.CompareDocuments(firstDoc, secondDoc)
-	assert.NoError(err)
-	assert.Length(diff.Differences(), 13)
+	Assert(t, NoError(err), "first document compared with second")
+	Assert(t, Length(diff.Differences(), 13), "first document compared with second has differences")
 
 	for _, path := range diff.Differences() {
 		fv, sv := diff.DifferenceAt(path)
 		fvs := fv.AsString("<first undefined>")
 		svs := sv.AsString("<second undefined>")
-		assert.Different(fvs, svs, path)
+		Assert(t, Different(fvs, svs), fmt.Sprintf("first and second pathes different at %q", path))
 	}
 
 	first, err = diff.FirstDocument().MarshalJSON()
-	assert.NoError(err)
+	Assert(t, NoError(err), "first document marshalled")
 	second, err = diff.SecondDocument().MarshalJSON()
-	assert.NoError(err)
+	Assert(t, NoError(err), "second document marshalled")
 	diff, err = dynaj.Compare(first, second)
-	assert.NoError(err)
-	assert.Length(diff.Differences(), 13)
+	Assert(t, NoError(err), "first marshalled document compared with second")
+	Assert(t, Length(diff.Differences(), 13), "first marshalled document compared with second has differences")
 
 	// Special case of empty arrays, objects, and null.
 	first = []byte(`{}`)
 	second = []byte(`{"a":[],"b":{},"c":null}`)
 
 	sdocParsed, err := dynaj.Unmarshal(second)
-	assert.NoError(err)
+	Assert(t, NoError(err), "second document unmarshalled")
 	sdocMarshalled, err := sdocParsed.MarshalJSON()
-	assert.NoError(err)
-	assert.Equal(string(sdocMarshalled), string(second))
+	Assert(t, NoError(err), "second document marshalled")
+	Assert(t, Equal(string(sdocMarshalled), string(second)), "second document marshalled equals original")
 
 	diff, err = dynaj.Compare(first, second)
-	assert.NoError(err)
-	assert.Length(diff.Differences(), 4)
+	Assert(t, NoError(err), "first document compared with second")
+	Assert(t, Length(diff.Differences(), 4), "first document compared with second has differences")
 
 	first = []byte(`[]`)
 	diff, err = dynaj.Compare(first, second)
-	assert.NoError(err)
-	assert.Length(diff.Differences(), 4)
+	Assert(t, NoError(err), "first document compared with second")
+	Assert(t, Length(diff.Differences(), 4), "first document compared with second has differences")
 
 	first = []byte(`["A", "B", "C"]`)
 	diff, err = dynaj.Compare(first, second)
-	assert.NoError(err)
-	assert.Length(diff.Differences(), 6)
+	Assert(t, NoError(err), "first document compared with second")
+	Assert(t, Length(diff.Differences(), 6), "first document compared with second has differences")
 
 	first = []byte(`"foo"`)
 	diff, err = dynaj.Compare(first, second)
-	assert.NoError(err)
-	assert.Length(diff.Differences(), 4)
+	Assert(t, NoError(err), "first document compared with second")
+	Assert(t, Length(diff.Differences(), 4), "first document compared with second has differences")
 }
 
 // EOF

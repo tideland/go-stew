@@ -15,8 +15,9 @@ import (
 	"testing"
 	"time"
 
+	. "tideland.dev/go/stew/assert"
+
 	"tideland.dev/go/stew/actor"
-	"tideland.dev/go/stew/asserts"
 )
 
 //--------------------
@@ -26,7 +27,6 @@ import (
 // TestRepeatStopActor verifies Repeat working and being
 // stopped when the Actor is stopped.
 func TestRepeatStopActor(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	finalized := make(chan struct{})
 	counter := 0
 	act, err := actor.Go(actor.WithFinalizer(func(err error) error {
@@ -36,57 +36,56 @@ func TestRepeatStopActor(t *testing.T) {
 
 		return err
 	}))
-	assert.OK(err)
-	assert.NotNil(act)
+	Assert(t, NoError(err), "actor started")
+	Assert(t, NotNil(act), "actor not nil")
 
 	// Start the repeated action.
 	stop, err := act.Repeat(10*time.Millisecond, func() {
 		counter++
 	})
-	assert.OK(err)
-	assert.NotNil(stop)
+	Assert(t, NoError(err), "action repeated")
+	Assert(t, NotNil(stop), "stop not nil")
 
 	time.Sleep(100 * time.Millisecond)
-	assert.True(counter >= 9, "possibly only 9 due to late interval start")
+	Assert(t, True(counter >= 9), "possibly only 9 due to late interval start")
 
 	// Stop the Actor and check the finalization.
 	act.Stop()
 
 	<-finalized
 
-	assert.NoError(act.Err())
-	assert.Equal(counter, 0)
+	Assert(t, NoError(act.Err()), "actor stopped via context")
+	Assert(t, Equal(counter, 0), "counter is 0")
 
 	// Check if the Interval is stopped too.
 	time.Sleep(100 * time.Millisecond)
-	assert.Equal(counter, 0)
+	Assert(t, Equal(counter, 0), "counter is still 0")
 }
 
 // TestPeriodicalStopInterval verifies Periodical working and being
 // stopped when the periodical is stopped.
 func TestIntervalStopInterval(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	counter := 0
 	act, err := actor.Go()
-	assert.OK(err)
-	assert.NotNil(act)
+	Assert(t, NoError(err), "actor started")
+	Assert(t, NotNil(act), "actor not nil")
 
 	// Start the repeated action.
 	stop, err := act.Repeat(10*time.Millisecond, func() {
 		counter++
 	})
-	assert.OK(err)
-	assert.NotNil(stop)
+	Assert(t, NoError(err), "action repeated")
+	Assert(t, NotNil(stop), "stop not nil")
 
 	time.Sleep(100 * time.Millisecond)
-	assert.True(counter >= 9, "possibly only 9 due to late interval start")
+	Assert(t, True(counter >= 9), "possibly only 9 due to late interval start")
 
 	// Stop the periodical and check that it doesn't work anymore.
 	counterNow := counter
 	stop()
 
 	time.Sleep(100 * time.Millisecond)
-	assert.Equal(counter, counterNow)
+	Assert(t, Equal(counter, counterNow), "counter not increased")
 
 	act.Stop()
 }

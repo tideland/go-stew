@@ -293,6 +293,22 @@ func TestDifferent(t *testing.T) {
 	Assert(t, Equal(stb.Len(), 4), "should be four fails")
 }
 
+// TestDeepQueal tests the DeepEqual assertion.
+func TestDeepEqual(t *testing.T) {
+	stb := newSubTB()
+	foo := []string{"foo", "bar"}
+	bar := []string{"foo", "bar"}
+	boo := []string{"foo", "bar", "baz"}
+
+	Assert(stb, DeepEqual(foo, bar), "equal slices")
+
+	Assert(stb, DeepEqual(foo, boo), "different slices (fail)")
+	Assert(stb, DeepEqual(foo, "foo"), "different types (fail)")
+
+	Assert(t, Equal(stb.Calls(), 3), "should be three calls")
+	Assert(t, Equal(stb.Len(), 2), "should be two fails")
+}
+
 // TestLength tests the Length assertion for different types.
 func TestLength(t *testing.T) {
 	stb := newSubTB()

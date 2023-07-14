@@ -14,7 +14,8 @@ package matcher_test
 import (
 	"testing"
 
-	"tideland.dev/go/stew/asserts"
+	. "tideland.dev/go/stew/assert"
+
 	"tideland.dev/go/stew/matcher"
 )
 
@@ -24,7 +25,6 @@ import (
 
 // TestMatches tests matching string.
 func TestMatches(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	tests := []struct {
 		name       string
 		pattern    string
@@ -108,9 +108,8 @@ func TestMatches(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			defer assert.SetFailable(t)()
 			out := matcher.Matches(test.pattern, test.value, test.ignoreCase)
-			assert.Equal(out, test.out)
+			Assert(t, Equal(out, test.out), "match result")
 		})
 	}
 }

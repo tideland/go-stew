@@ -16,8 +16,9 @@ import (
 	"testing"
 	"time"
 
+	. "tideland.dev/go/stew/assert"
+
 	"tideland.dev/go/stew/actor"
-	"tideland.dev/go/stew/asserts"
 )
 
 //--------------------
@@ -26,7 +27,6 @@ import (
 
 // TestMass verifies the starting and stopping an Actor.
 func TestMass(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	pps := make([]*PingPong, 1000)
 	for i := 0; i < len(pps); i++ {
 		pps[i] = NewPingPong(pps)
@@ -43,35 +43,34 @@ func TestMass(t *testing.T) {
 	// Let's check some random ping pong pairs.
 	for _, pp := range pps {
 		pings, pongs := pp.PingPongs()
-		assert.True(pings > 0)
-		assert.True(pongs > 0)
+		Assert(t, True(pings > 0), "pings > 0")
+		Assert(t, True(pongs > 0), "pongs > 0")
 		pp.Stop()
 	}
 }
 
 // TestPerformance verifies the starting and stopping an Actor.
 func TestPerformance(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	finalized := make(chan struct{})
 	act, err := actor.Go(actor.WithFinalizer(func(err error) error {
 		defer close(finalized)
 		return err
 	}))
-	assert.OK(err)
-	assert.NotNil(act)
+	Assert(t, NoError(err), "actor started")
+	Assert(t, NotNil(act), "actor not nil")
 
 	now := time.Now()
 	for i := 0; i < 10000; i++ {
 		act.DoAsync(func() {})
 	}
 	duration := time.Since(now)
-	assert.True(duration < 100*time.Millisecond)
+	Assert(t, True(duration < 100*time.Millisecond), "duration < 100ms")
 
 	act.Stop()
 
 	<-finalized
 
-	assert.NoError(act.Err())
+	Assert(t, NoError(act.Err()), "actor stopped via context")
 }
 
 //--------------------

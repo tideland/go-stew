@@ -334,6 +334,19 @@ func Different[T comparable](va, vb T) Assertion {
 	}
 }
 
+// DeepEqual asserts that two values are deep equal.
+func DeepEqual(va, vb any) Assertion {
+	return func() (bool, string, error) {
+		var err error
+		ok := reflect.DeepEqual(va, vb)
+		info := ""
+		if !ok {
+			info = typedValue(va) + " is not deep equal to " + typedValue(vb)
+		}
+		return ok, info, err
+	}
+}
+
 // Length asserts that a value has a specific size.
 func Length(v any, l int) Assertion {
 	return func() (bool, string, error) {
