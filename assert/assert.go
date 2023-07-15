@@ -40,14 +40,16 @@ type SubTB interface {
 }
 
 // Assert executes the given assertion and fails a test if it returns false.
-func Assert(stb SubTB, assert Assertion, msg string) bool {
+func Assert(stb SubTB, assert Assertion, format string, a ...any) bool {
 	stb.Helper()
 	ok, info, err := assert()
 	if err != nil {
+		msg := fmt.Sprintf(format, a...)
 		stb.Fatalf("error in assertion: %s (%s)", err.Error(), msg)
 		return false
 	}
 	if !ok {
+		msg := fmt.Sprintf(format, a...)
 		stb.Errorf("assertion failed: %s (%s)", info, msg)
 		return false
 	}
@@ -422,6 +424,25 @@ func ContainsNot[S ~[]T, T comparable](vs S, content T) Assertion {
 		}
 		if !ok {
 			info = typedValue(vs) + " contains " + typedValue(content)
+		}
+		return ok, info, err
+	}
+}
+
+// DeepContains asserts that a slice of any value contains a specific value.
+func DeepContains(vs []any, content any) Assertion {
+	return func() (bool, string, error) {
+		var err error
+		ok := false
+		info := ""
+		for _, v := range vs {
+			if reflect.DeepEqual(v, content) {
+				ok = true
+				break
+			}
+		}
+		if !ok {
+			info = typedValue(vs) + " does not contain " + typedValue(content)
 		}
 		return ok, info, err
 	}

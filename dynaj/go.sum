@@ -2,7 +2,5 @@ golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1 h1:MGwJjxBy0HJshjDNfLsYO8xpp
 golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1/go.mod h1:FXUEEKJgO7OQYeo8N01OfiKP8RXMtf6e8aTskBGqWdc=
 tideland.dev/go/stew/assert v0.0.0-20230712203431-aea1a3041dd3 h1:MVRosUgqtLsphk8KaGNDYVfM9cep3K/50NnX3mkpH5M=
 tideland.dev/go/stew/assert v0.0.0-20230712203431-aea1a3041dd3/go.mod h1:/4lBvcVEWQICp1f4Qg784SyIBOSvPgABNaG92BTiiiY=
-tideland.dev/go/stew/asserts v0.0.0-20230630172718-629e8fa589c8 h1:qTNg77E4uisf8PxZIydXf7UaIKdtzJzTXMD4ZN7H2KE=
-tideland.dev/go/stew/asserts v0.0.0-20230630172718-629e8fa589c8/go.mod h1:qRwLftaXSVh7mNrImrpi2qUO5udnbNqjyEe2IfvlG/Q=
-tideland.dev/go/stew/matcher v0.0.0-20230630185314-c8aa337f9314 h1:hK/wNjAFMCibJiPg8qTqzOjJhomFWIJ2gPp10RpayOA=
-tideland.dev/go/stew/matcher v0.0.0-20230630185314-c8aa337f9314/go.mod h1:AUKPnNhz8WwtwibKcIV/7bYAD5X42/1IdcObynIeP90=
+tideland.dev/go/stew/matcher v0.0.0-20230714201409-decb524de53d h1:hztvQqvW6KGridsyVtsumtnDI3shcL3j+XIwxSeb7mo=
+tideland.dev/go/stew/matcher v0.0.0-20230714201409-decb524de53d/go.mod h1:1Zdwd1s8n+S5NefshhTOLgj3BjK8hV+s3hhnkE16otg=

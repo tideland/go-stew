@@ -1,2 +1,4 @@
-tideland.dev/go/stew/asserts v0.0.0-20230630112941-1023ce8dcac4 h1:QTTPGmVt/eGeBh5QBv4NkRjlPsWa6UAiktB8cJOr3bE=
-tideland.dev/go/stew/asserts v0.0.0-20230630112941-1023ce8dcac4/go.mod h1:qRwLftaXSVh7mNrImrpi2qUO5udnbNqjyEe2IfvlG/Q=
+golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1 h1:MGwJjxBy0HJshjDNfLsYO8xppfqWlA5ZT9OhtUUhTNw=
+golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1/go.mod h1:FXUEEKJgO7OQYeo8N01OfiKP8RXMtf6e8aTskBGqWdc=
+tideland.dev/go/stew/assert v0.0.0-20230714201409-decb524de53d h1:7y58nz8efgujcDpT2xyctudIoRoHH3e/XuRXzOC1rUM=
+tideland.dev/go/stew/assert v0.0.0-20230714201409-decb524de53d/go.mod h1:/4lBvcVEWQICp1f4Qg784SyIBOSvPgABNaG92BTiiiY=

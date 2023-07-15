@@ -12,12 +12,12 @@ package generators_test
 //--------------------
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 	"time"
 
-	"tideland.dev/go/stew/asserts"
+	. "tideland.dev/go/stew/assert"
+
 	"tideland.dev/go/stew/generators"
 )
 
@@ -27,7 +27,6 @@ import (
 
 // TestBuildDate tests the generation of dates.
 func TestBuildDate(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	layouts := []string{
 		time.ANSIC,
 		time.UnixDate,
@@ -47,26 +46,25 @@ func TestBuildDate(t *testing.T) {
 	}
 
 	for _, layout := range layouts {
-		ts, t := generators.BuildTime(layout, 0)
+		ts, tim := generators.BuildTime(layout, 0)
 		tsp, err := time.Parse(layout, ts)
-		assert.Nil(err)
-		assert.Equal(t, tsp)
+		Assert(t, NoError(err), "time parsed")
+		Assert(t, Equal(tim, tsp), "time equal")
 
-		ts, t = generators.BuildTime(layout, -30*time.Minute)
+		ts, tim = generators.BuildTime(layout, -30*time.Minute)
 		tsp, err = time.Parse(layout, ts)
-		assert.Nil(err)
-		assert.Equal(t, tsp)
+		Assert(t, NoError(err), "time parsed")
+		Assert(t, Equal(tim, tsp), "time equal")
 
-		ts, t = generators.BuildTime(layout, time.Hour)
+		ts, tim = generators.BuildTime(layout, time.Hour)
 		tsp, err = time.Parse(layout, ts)
-		assert.Nil(err)
-		assert.Equal(t, tsp)
+		Assert(t, NoError(err), "time parsed")
+		Assert(t, Equal(tim, tsp), "time equal")
 	}
 }
 
 // TestBytes tests the generation of bytes.
 func TestBytes(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 
 	// Test individual bytes.
@@ -77,26 +75,25 @@ func TestBytes(t *testing.T) {
 		if hi < lo {
 			lo, hi = hi, lo
 		}
-		assert.True(lo <= n && n <= hi)
+		Assert(t, Range(n, lo, hi), "byte range")
 	}
 
 	// Test byte slices.
 	ns := gen.Bytes(1, 200, 1000)
-	assert.Length(ns, 1000)
+	Assert(t, Length(ns, 1000), "length")
 	for _, n := range ns {
-		assert.True(n >= 1 && n <= 200)
+		Assert(t, Range(n, 1, 200), "byte slice")
 	}
 
 	// Test UUIDs.
 	for i := 0; i < 10000; i++ {
 		uuid := gen.UUID()
-		assert.Length(uuid, 16)
+		Assert(t, Length(uuid, 16), "UUID length")
 	}
 }
 
 // TestInts tests the generation of ints.
 func TestInts(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 
 	// Test individual ints.
@@ -107,20 +104,20 @@ func TestInts(t *testing.T) {
 		if hi < lo {
 			lo, hi = hi, lo
 		}
-		assert.True(lo <= n && n <= hi)
+		Assert(t, Range(n, lo, hi), "int range")
 	}
 
 	// Test int slices.
 	ns := gen.Ints(0, 500, 10000)
-	assert.Length(ns, 10000)
+	Assert(t, Length(ns, 10000), "length")
 	for _, n := range ns {
-		assert.True(n >= 0 && n <= 500)
+		Assert(t, Range(n, 0, 500), "int slice")
 	}
 
 	// Test the generation of percent.
 	for i := 0; i < 10000; i++ {
 		p := gen.Percent()
-		assert.True(p >= 0 && p <= 100)
+		Assert(t, Range(p, 0, 100), "percent")
 	}
 
 	// Test the flipping of coins.
@@ -134,46 +131,53 @@ func TestInts(t *testing.T) {
 			cf++
 		}
 	}
-	assert.About(float64(ct), float64(cf), 500)
+	Assert(t, About(ct, cf, 500), "coin flipping")
 }
 
 // TestOneOf tests the generation of selections.
 func TestOneOf(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 	stuff := []any{1, true, "three", 47.11, []byte{'A', 'B', 'C'}}
 
 	for i := 0; i < 10000; i++ {
 		m := gen.OneOf(stuff...)
-		assert.Contains(m, stuff)
+		Assert(t, DeepContains(stuff, m), "contains")
 
 		b := gen.OneByteOf(1, 2, 3, 4, 5)
-		assert.True(b >= 1 && b <= 5)
+		Assert(t, Range(b, 1, 5), "byte")
 
 		r := gen.OneRuneOf("abcdef")
-		assert.True(r >= 'a' && r <= 'f')
+		Assert(t, Range(r, 'a', 'f'), "rune")
 
 		n := gen.OneIntOf(1, 2, 3, 4, 5)
-		assert.True(n >= 1 && n <= 5)
+		Assert(t, Range(n, 1, 5), "int")
 
-		s := gen.OneStringOf("one", "two", "three", "four", "five")
-		assert.Substring(s, "one/two/three/four/five")
+		ss := []string{"one", "two", "three", "four", "five"}
+		s := gen.OneStringOf(ss...)
+		find := func() bool {
+			for _, os := range ss {
+				if os == s {
+					return true
+				}
+			}
+			return false
+		}
+		Assert(t, True(find()), "string")
 
 		d := gen.OneDurationOf(1*time.Second, 2*time.Second, 3*time.Second)
-		assert.True(d >= 1*time.Second && d <= 3*time.Second)
+		Assert(t, Range(d, 1*time.Second, 3*time.Second), "duration")
 	}
 }
 
 // TestWords tests the generation of words.
 func TestWords(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 
 	// Test single words.
 	for i := 0; i < 10000; i++ {
 		w := gen.Word()
 		for _, r := range w {
-			assert.True(r >= 'a' && r <= 'z')
+			Assert(t, Range(r, 'a', 'z'), "rune")
 		}
 	}
 
@@ -186,13 +190,12 @@ func TestWords(t *testing.T) {
 		if hi < lo {
 			lo, hi = hi, lo
 		}
-		assert.True(lo <= wl && wl <= hi, info("WL %d LO %d HI %d", wl, lo, hi))
+		Assert(t, Range(wl, lo, hi), "limited word length")
 	}
 }
 
 // TestPattern tests the generation based on patterns.
 func TestPattern(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 	assertPattern := func(pattern, runes string) {
 		set := make(map[rune]bool)
@@ -202,7 +205,7 @@ func TestPattern(t *testing.T) {
 		for i := 0; i < 10; i++ {
 			result := gen.Pattern(pattern)
 			for _, r := range result {
-				assert.True(set[r], pattern, result, runes)
+				Assert(t, True(set[r]), "pattern %q contains %q", pattern, r)
 			}
 		}
 	}
@@ -226,7 +229,6 @@ func TestPattern(t *testing.T) {
 
 // TestText tests the generation of text.
 func TestText(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 	names := gen.Names(4)
 
@@ -234,109 +236,105 @@ func TestText(t *testing.T) {
 		s := gen.Sentence()
 		ws := strings.Split(s, " ")
 		lws := len(ws)
-		assert.True(2 <= lws && lws <= 15, info("S: %v SL: %d", s, lws))
-		assert.True('A' <= s[0] && s[0] <= 'Z', info("SUC: %v", s[0]))
+		Assert(t, Range(lws, 2, 15), "S: %v SL: %d", s, lws)
+		Assert(t, Range(s[0], 'A', 'Z'), "SUC: %v", s[0])
 	}
 
 	for i := 0; i < 10; i++ {
 		s := gen.SentenceWithNames(names)
-		assert.NotEmpty(s)
+		Assert(t, NotEmpty(s), "sentence with names")
 	}
 
 	for i := 0; i < 10000; i++ {
 		p := gen.Paragraph()
 		ss := strings.Split(p, ". ")
 		lss := len(ss)
-		assert.True(2 <= lss && lss <= 10, info("PL: %d", lss))
+		Assert(t, Range(lss, 2, 10), "PL: %d", lss)
 		for _, s := range ss {
 			ws := strings.Split(s, " ")
 			lws := len(ws)
-			assert.True(2 <= lws && lws <= 15, info("S: %v PSL: %d", s, lws))
-			assert.True('A' <= s[0] && s[0] <= 'Z', info("PSUC: %v", s[0]))
+			Assert(t, Range(lws, 2, 15), "S: %v PSL: %d", s, lws)
+			Assert(t, Range(s[0], 'A', 'Z'), "PSUC: %v", s[0])
 		}
 	}
 
 	for i := 0; i < 10; i++ {
 		s := gen.ParagraphWithNames(names)
-		assert.NotEmpty(s)
+		Assert(t, NotEmpty(s), "paragraph with names")
 	}
 }
 
 // TestName tests the generation of names.
 func TestName(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 
-	assert.Equal(generators.ToUpperFirst("yadda"), "Yadda")
+	Assert(t, Equal(generators.ToUpperFirst("yadda"), "Yadda"), "to upper first")
 
 	for i := 0; i < 10000; i++ {
 		first, middle, last := gen.Name()
 
-		assert.Match(first, `[A-Z][a-z]+(-[A-Z][a-z]+)?`)
-		assert.Match(middle, `[A-Z][a-z]+(-[A-Z][a-z]+)?`)
-		assert.Match(last, `[A-Z]['a-zA-Z]+`)
+		Assert(t, Matches(first, `[A-Z][a-z]+(-[A-Z][a-z]+)?`), "first name")
+		Assert(t, Matches(middle, `[A-Z][a-z]+(-[A-Z][a-z]+)?`), "middle name")
+		Assert(t, Matches(last, `[A-Z]['a-zA-Z]+`), "last name")
 
 		first, middle, last = gen.MaleName()
 
-		assert.Match(first, `[A-Z][a-z]+(-[A-Z][a-z]+)?`)
-		assert.Match(middle, `[A-Z][a-z]+(-[A-Z][a-z]+)?`)
-		assert.Match(last, `[A-Z]['a-zA-Z]+`)
+		Assert(t, Matches(first, `[A-Z][a-z]+(-[A-Z][a-z]+)?`), "first name")
+		Assert(t, Matches(middle, `[A-Z][a-z]+(-[A-Z][a-z]+)?`), "middle name")
+		Assert(t, Matches(last, `[A-Z]['a-zA-Z]+`), "last name")
 
 		first, middle, last = gen.FemaleName()
 
-		assert.Match(first, `[A-Z][a-z]+(-[A-Z][a-z]+)?`)
-		assert.Match(middle, `[A-Z][a-z]+(-[A-Z][a-z]+)?`)
-		assert.Match(last, `[A-Z]['a-zA-Z]+`)
+		Assert(t, Matches(first, `[A-Z][a-z]+(-[A-Z][a-z]+)?`), "first name")
+		Assert(t, Matches(middle, `[A-Z][a-z]+(-[A-Z][a-z]+)?`), "middle name")
+		Assert(t, Matches(last, `[A-Z]['a-zA-Z]+`), "last name")
 
 		count := gen.Int(0, 5)
 		names := gen.Names(count)
 
-		assert.Length(names, count)
+		Assert(t, Length(names, count), "length")
+
 		for _, name := range names {
-			assert.Match(name, `[A-Z][a-z]+(-[A-Z][a-z]+)?\s([A-Z]\.\s)?[A-Z]['a-zA-Z]+`)
+			Assert(t, Matches(name, `[A-Z][a-z]+(-[A-Z][a-z]+)?\s([A-Z]\.\s)?[A-Z]['a-zA-Z]+`), "name")
 		}
 	}
 }
 
 // TestDomain tests the generation of domains.
 func TestDomain(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 
 	for i := 0; i < 00100; i++ {
 		domain := gen.Domain()
 
-		assert.Match(domain, `^[a-z0-9.-]+\.[a-z]{2,4}$`)
+		Assert(t, Matches(domain, `[a-z0-9.-]+\.[a-z]{2,4}`), "domain")
 	}
 }
 
 // TestURL tests the generation of URLs.
 func TestURL(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 
 	for i := 0; i < 10000; i++ {
 		url := gen.URL()
 
-		assert.Match(url, `(http|ftp|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?`)
+		Assert(t, Matches(url, `(http|ftp|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?`), "URL")
 	}
 }
 
 // TestEMail tests the generation of e-mail addresses.
 func TestEMail(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 
 	for i := 0; i < 10000; i++ {
 		addr := gen.EMail()
 
-		assert.Match(addr, `^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$`)
+		Assert(t, Matches(addr, `[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}`), "e-mail address")
 	}
 }
 
 // TestTimes tests the generation of durations and times.
 func TestTimes(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 
 	for i := 0; i < 10000; i++ {
@@ -347,15 +345,15 @@ func TestTimes(t *testing.T) {
 		if hi < lo {
 			lo, hi = hi, lo
 		}
-		assert.True(lo <= d && d <= hi, "High / Low")
+		Assert(t, Range(d, lo, hi), "duration range")
 
 		// Test times.
 		loc := time.Local
 		now := time.Now()
 		dur := gen.Duration(24*time.Hour, 30*24*time.Hour)
-		t := gen.Time(loc, now, dur)
-		assert.True(t.Equal(now) || t.After(now), "Equal or after now")
-		assert.True(t.Before(now.Add(dur)) || t.Equal(now.Add(dur)), "Before or equal now plus duration")
+		tim := gen.Time(loc, now, dur)
+		Assert(t, True(tim.Equal(now) || tim.After(now)), "equal or after now")
+		Assert(t, True(tim.Before(now.Add(dur)) || tim.Equal(now.Add(dur))), "before or equal now plus duration")
 	}
 
 	sleeps := map[int]time.Duration{
@@ -369,7 +367,7 @@ func TestTimes(t *testing.T) {
 		sleep := gen.SleepOneOf(sleeps[1], sleeps[2], sleeps[3], sleeps[4], sleeps[5])
 		s := int(sleep) / 1000000
 		_, ok := sleeps[s]
-		assert.True(ok, "Chosen duration is one the arguments")
+		Assert(t, OK(ok), "chosen sleep is one the arguments")
 	}
 }
 
@@ -389,11 +387,5 @@ func TestConcurrency(t *testing.T) {
 
 	time.Sleep(3 * time.Second)
 }
-
-//--------------------
-// HELPER
-//--------------------
-
-var info = fmt.Sprintf
 
 // EOF

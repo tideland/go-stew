@@ -424,6 +424,27 @@ func TestContainsNot(t *testing.T) {
 	Assert(t, Equal(stb.Len(), 6), "should be six fails")
 }
 
+// TestDeepContains tests the DeepContains assertion for different types.
+func TestDeepContains(t *testing.T) {
+	stb := newSubTB()
+	stuff := []any{1, true, "three", 47.11, []int{1, 2, 3}}
+
+	Assert(stb, DeepContains(stuff, 1), "slice contains 1")
+	Assert(stb, DeepContains(stuff, true), "slice contains true")
+	Assert(stb, DeepContains(stuff, "three"), "slice contains three")
+	Assert(stb, DeepContains(stuff, 47.11), "slice contains 47.11")
+	Assert(stb, DeepContains(stuff, []int{1, 2, 3}), "slice contains [1, 2, 3]")
+
+	Assert(stb, DeepContains(stuff, 2), "slice does not contain 2 (fail)")
+	Assert(stb, DeepContains(stuff, false), "slice does not contain false (fail)")
+	Assert(stb, DeepContains(stuff, "four"), "slice does not contain four (fail)")
+	Assert(stb, DeepContains(stuff, 8.15), "slice does not contain 8.15 (fail)")
+	Assert(stb, DeepContains(stuff, []int{4, 5, 6}), "slice contains [4, 5, 6]")
+
+	Assert(t, Equal(stb.Calls(), 10), "should be ten calls")
+	Assert(t, Equal(stb.Len(), 5), "should be five fails")
+}
+
 // TestAbout tests the About assertion for different types.
 func TestAbout(t *testing.T) {
 	stb := newSubTB()
