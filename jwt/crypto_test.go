@@ -21,7 +21,8 @@ import (
 	"encoding/pem"
 	"testing"
 
-	"tideland.dev/go/stew/asserts"
+	. "tideland.dev/go/stew/assert"
+
 	"tideland.dev/go/stew/jwt"
 )
 
@@ -39,95 +40,84 @@ var (
 
 // TestESAlgorithms verifies the ECDSA algorithms.
 func TestESAlgorithms(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	assert.Nil(err)
+	Assert(t, NoError(err), "generation of private key worked")
 	for _, algo := range esTests {
-		assert.Logf("testing algorithm %q", algo)
 		// Sign.
 		signature, err := algo.Sign(data, privateKey)
-		assert.Nil(err)
-		assert.NotEmpty(signature)
+		Assert(t, NoError(err), "signing wilth algo %q worked", algo)
+		Assert(t, NotEmpty(signature), "signature is not empty")
 		// Verify.
 		err = algo.Verify(data, signature, privateKey.Public())
-		assert.Nil(err)
+		Assert(t, NoError(err), "verification with algo %q worked", algo)
 	}
 }
 
 // TestHSAlgorithms verifies the HMAC algorithms.
 func TestHSAlgorithms(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	key := []byte("secret")
 	for _, algo := range hsTests {
-		assert.Logf("testing algorithm %q", algo)
 		// Sign.
 		signature, err := algo.Sign(data, key)
-		assert.Nil(err)
-		assert.NotEmpty(signature)
+		Assert(t, NoError(err), "signing wilth algo %q worked", algo)
+		Assert(t, NotEmpty(signature), "signature is not empty")
 		// Verify.
 		err = algo.Verify(data, signature, key)
-		assert.Nil(err)
+		Assert(t, NoError(err), "verification with algo %q worked", algo)
 	}
 }
 
 // TestPSAlgorithms verifies the RSAPSS algorithms.
 func TestPSAlgorithms(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	assert.Nil(err)
+	Assert(t, NoError(err), "generation of private key worked")
 	for _, algo := range psTests {
-		assert.Logf("testing algorithm %q", algo)
 		// Sign.
 		signature, err := algo.Sign(data, privateKey)
-		assert.Nil(err)
-		assert.NotEmpty(signature)
+		Assert(t, NoError(err), "signing wilth algo %q worked", algo)
+		Assert(t, NotEmpty(signature), "signature is not empty")
 		// Verify.
 		err = algo.Verify(data, signature, privateKey.Public())
-		assert.Nil(err)
+		Assert(t, NoError(err), "verification with algo %q worked", algo)
 	}
 }
 
 // TestRSAlgorithms verifies the RSA algorithms.
 func TestRSAlgorithms(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	assert.Nil(err)
+	Assert(t, NoError(err), "generation of private key worked")
 	for _, algo := range rsTests {
-		assert.Logf("testing algorithm %q", algo)
 		// Sign.
 		signature, err := algo.Sign(data, privateKey)
-		assert.Nil(err)
-		assert.NotEmpty(signature)
+		Assert(t, NoError(err), "signing wilth algo %q worked", algo)
+		Assert(t, NotEmpty(signature), "signature is not empty")
 		// Verify.
 		err = algo.Verify(data, signature, privateKey.Public())
-		assert.Nil(err)
+		Assert(t, NoError(err), "verification with algo %q worked", algo)
 	}
 }
 
 // TestNoneAlgorithm verifies the none algorithm.
 func TestNoneAlgorithm(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-	assert.Logf("testing algorithm \"none\"")
 	// Sign.
 	signature, err := jwt.NONE.Sign(data, "")
-	assert.Nil(err)
-	assert.Empty(signature)
+	Assert(t, NoError(err), "signing without key worked")
+	Assert(t, Empty(signature), "signature is empty")
 	// Verify.
 	err = jwt.NONE.Verify(data, signature, "")
-	assert.Nil(err)
+	Assert(t, NoError(err), "verification without key worked")
 }
 
 // TestNotMatchingAlgorithm checks when algorithms of
 // signing and verifying don't match.'
 func TestNotMatchingAlgorithm(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	esPrivateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	esPublicKey := esPrivateKey.Public()
-	assert.Nil(err)
+	Assert(t, NoError(err), "generation of private key worked")
 	hsKey := []byte("secret")
 	rsPrivateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	rsPublicKey := rsPrivateKey.Public()
-	assert.Nil(err)
+	Assert(t, NoError(err), "generation of private key worked")
 	noneKey := ""
 	errorMatch := ".* combination of algorithm .* and key type .*"
 	tests := []struct {
@@ -150,16 +140,15 @@ func TestNotMatchingAlgorithm(t *testing.T) {
 	}
 	// Run the tests.
 	for _, test := range tests {
-		assert.Logf("testing %q algorithm key type mismatch", test.description)
 		for _, key := range test.signKeys {
 			_, err := test.algorithm.Sign(data, key)
-			assert.ErrorMatch(err, errorMatch)
+			Assert(t, ErrorMatches(err, errorMatch), "signing with %s algorithm and %T key failed", test.algorithm, key)
 		}
 		signature, err := test.algorithm.Sign(data, test.key)
-		assert.Nil(err)
+		Assert(t, NoError(err), "signing with %s algorithm and %T key worked", test.algorithm, test.key)
 		for _, key := range test.verifyKeys {
 			err = test.algorithm.Verify(data, signature, key)
-			assert.ErrorMatch(err, errorMatch)
+			Assert(t, ErrorMatches(err, errorMatch), "verification with %s algorithm and %T key failed", test.algorithm, key)
 		}
 	}
 }
@@ -167,48 +156,44 @@ func TestNotMatchingAlgorithm(t *testing.T) {
 // TestESTools verifies the tools for the reading of PEM encoded
 // ECDSA keys.
 func TestESTools(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-	assert.Logf("testing \"ECDSA\" tools")
 	// Generate keys and PEMs.
 	privateKeyIn, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	assert.Nil(err)
+	Assert(t, NoError(err), "generation of private key worked")
 	privateBytes, err := x509.MarshalECPrivateKey(privateKeyIn)
-	assert.Nil(err)
+	Assert(t, NoError(err), "marshaling of private key worked")
 	privateBlock := pem.Block{
 		Type:  "EC PRIVATE KEY",
 		Bytes: privateBytes,
 	}
 	privatePEM := pem.EncodeToMemory(&privateBlock)
 	publicBytes, err := x509.MarshalPKIXPublicKey(privateKeyIn.Public())
-	assert.Nil(err)
+	Assert(t, NoError(err), "marshaling of public key worked")
 	publicBlock := pem.Block{
 		Type:  "EC PUBLIC KEY",
 		Bytes: publicBytes,
 	}
 	publicPEM := pem.EncodeToMemory(&publicBlock)
-	assert.NotNil(publicPEM)
+	Assert(t, NotEmpty(publicPEM), "public PEM is not empty")
 	// Now read them.
 	buf := bytes.NewBuffer(privatePEM)
 	privateKeyOut, err := jwt.ReadECPrivateKey(buf)
-	assert.Nil(err)
+	Assert(t, NoError(err), "reading of private key worked")
 	buf = bytes.NewBuffer(publicPEM)
 	publicKeyOut, err := jwt.ReadECPublicKey(buf)
-	assert.Nil(err)
+	Assert(t, NoError(err), "reading of public key worked")
 	// And as a last step check if they are correctly usable.
 	signature, err := jwt.ES512.Sign(data, privateKeyOut)
-	assert.Nil(err)
+	Assert(t, NoError(err), "signing with ES512 algorithm and ECDSA key worked")
 	err = jwt.ES512.Verify(data, signature, publicKeyOut)
-	assert.Nil(err)
+	Assert(t, NoError(err), "verification with ES512 algorithm and ECDSA key worked")
 }
 
 // TestRSTools verifies the tools for the reading of PEM encoded
 // RSA keys.
 func TestRSTools(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-	assert.Logf("testing \"RSA\" tools")
 	// Generate keys and PEMs.
 	privateKeyIn, err := rsa.GenerateKey(rand.Reader, 2048)
-	assert.Nil(err)
+	Assert(t, NoError(err), "generation of private key worked")
 	privateBytes := x509.MarshalPKCS1PrivateKey(privateKeyIn)
 	privateBlock := pem.Block{
 		Type:  "RSA PRIVATE KEY",
@@ -216,25 +201,25 @@ func TestRSTools(t *testing.T) {
 	}
 	privatePEM := pem.EncodeToMemory(&privateBlock)
 	publicBytes, err := x509.MarshalPKIXPublicKey(privateKeyIn.Public())
-	assert.Nil(err)
+	Assert(t, NoError(err), "marshaling of public key worked")
 	publicBlock := pem.Block{
 		Type:  "RSA PUBLIC KEY",
 		Bytes: publicBytes,
 	}
 	publicPEM := pem.EncodeToMemory(&publicBlock)
-	assert.NotNil(publicPEM)
+	Assert(t, NotNil(publicPEM), "public PEM is not nil")
 	// Now read them.
 	buf := bytes.NewBuffer(privatePEM)
 	privateKeyOut, err := jwt.ReadRSAPrivateKey(buf)
-	assert.Nil(err)
+	Assert(t, NoError(err), "reading of private key worked")
 	buf = bytes.NewBuffer(publicPEM)
 	publicKeyOut, err := jwt.ReadRSAPublicKey(buf)
-	assert.Nil(err)
+	Assert(t, NoError(err), "reading of public key worked")
 	// And as a last step check if they are correctly usable.
 	signature, err := jwt.RS512.Sign(data, privateKeyOut)
-	assert.Nil(err)
+	Assert(t, NoError(err), "signing with RS512 algorithm and RSA key worked")
 	err = jwt.RS512.Verify(data, signature, publicKeyOut)
-	assert.Nil(err)
+	Assert(t, NoError(err), "verification with RS512 algorithm and RSA key worked")
 }
 
 // EOF
