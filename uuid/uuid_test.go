@@ -14,7 +14,8 @@ package uuid_test
 import (
 	"testing"
 
-	"tideland.dev/go/stew/asserts"
+	. "tideland.dev/go/stew/assert"
+
 	"tideland.dev/go/stew/uuid"
 )
 
@@ -24,55 +25,49 @@ import (
 
 // TestStandard tests the standard UUID.
 func TestStandard(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	// Asserts.
 	uuidA := uuid.New()
-	assert.Equal(uuidA.Version(), uuid.V4)
+	Assert(t, Equal(uuidA.Version(), uuid.V4), "wrong UUID version")
 	uuidAShortStr := uuidA.ShortString()
 	uuidAStr := uuidA.String()
-	assert.Equal(len(uuidA), 16)
-	assert.Match(uuidAShortStr, "[0-9a-f]{32}")
-	assert.Match(uuidAStr, "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
+	Assert(t, Length(uuidA, 16), "wrong UUID short string length")
+	Assert(t, Length(uuidAShortStr, 32), "wrong UUID string length")
+	Assert(t, Matches(uuidAShortStr, "[0-9a-f]{32}"), "wrong UUID short string format")
+	Assert(t, Matches(uuidAStr, "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"), "wrong UUID string format")
 	// Check for copy.
 	uuidB := uuid.New()
 	uuidC := uuidB.Copy()
 	for i := 0; i < len(uuidB); i++ {
 		uuidB[i] = 0
 	}
-	assert.Different(uuidB, uuidC)
+	Assert(t, Different(uuidB, uuidC), "UUID copy not independent")
 }
 
 // TestVersions tests the creation of different UUID versions.
 func TestVersions(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	ns := uuid.NamespaceOID()
 	name := []byte{1, 3, 3, 7}
 	// Asserts.
 	uuidV1, err := uuid.NewV1()
-	assert.Nil(err)
-	assert.Equal(uuidV1.Version(), uuid.V1)
-	assert.Equal(uuidV1.Variant(), uuid.VariantRFC4122)
-	assert.Logf("UUID V1: %v", uuidV1)
+	Assert(t, NoError(err), "error creating UUID V1")
+	Assert(t, Equal(uuidV1.Version(), uuid.V1), "wrong UUID version")
+	Assert(t, Equal(uuidV1.Variant(), uuid.VariantRFC4122), "wrong UUID variant")
 	uuidV3, err := uuid.NewV3(ns, name)
-	assert.Nil(err)
-	assert.Equal(uuidV3.Version(), uuid.V3)
-	assert.Equal(uuidV3.Variant(), uuid.VariantRFC4122)
-	assert.Logf("UUID V3: %v", uuidV3)
+	Assert(t, NoError(err), "error creating UUID V3")
+	Assert(t, Equal(uuidV3.Version(), uuid.V3), "wrong UUID version")
+	Assert(t, Equal(uuidV3.Variant(), uuid.VariantRFC4122), "wrong UUID variant")
 	uuidV4, err := uuid.NewV4()
-	assert.Nil(err)
-	assert.Equal(uuidV4.Version(), uuid.V4)
-	assert.Equal(uuidV4.Variant(), uuid.VariantRFC4122)
-	assert.Logf("UUID V4: %v", uuidV4)
+	Assert(t, NoError(err), "error creating UUID V4")
+	Assert(t, Equal(uuidV4.Version(), uuid.V4), "wrong UUID version")
+	Assert(t, Equal(uuidV4.Variant(), uuid.VariantRFC4122), "wrong UUID variant")
 	uuidV5, err := uuid.NewV5(ns, name)
-	assert.Nil(err)
-	assert.Equal(uuidV5.Version(), uuid.V5)
-	assert.Equal(uuidV5.Variant(), uuid.VariantRFC4122)
-	assert.Logf("UUID V5: %v", uuidV5)
+	Assert(t, NoError(err), "error creating UUID V5")
+	Assert(t, Equal(uuidV5.Version(), uuid.V5), "wrong UUID version")
+	Assert(t, Equal(uuidV5.Variant(), uuid.VariantRFC4122), "wrong UUID variant")
 }
 
 // TestParse tests creating UUIDs from different string representations.
 func TestParse(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	ns := uuid.NamespaceOID()
 	name := []byte{1, 3, 3, 7}
 	// Asserts.
@@ -107,16 +102,15 @@ func TestParse(t *testing.T) {
 		{func() string { return "[abcdefabcdefabcdefabcdefabcdefab]" }, 0, 0, "invalid source format"},
 		{func() string { return "abcdefab=cdef=abcd=efab=cdefabcdefab" }, 0, 0, "source char 8 does not match pattern"},
 	}
-	for i, test := range tests {
+	for _, test := range tests {
 		source := test.source()
-		assert.Logf("test #%d source %s", i, source)
 		uuidT, err := uuid.Parse(source)
 		if test.err == "" {
-			assert.NoError(err)
-			assert.Equal(uuidT.Version(), test.version)
-			assert.Equal(uuidT.Variant(), test.variant)
+			Assert(t, NoError(err), "error parsing UUID %q", source)
+			Assert(t, Equal(uuidT.Version(), test.version), "wrong UUID version for %q", source)
+			Assert(t, Equal(uuidT.Variant(), test.variant), "wrong UUID variant for %q", source)
 		} else {
-			assert.ErrorContains(err, test.err)
+			Assert(t, ErrorContains(err, test.err), "wrong error parsing UUID %q", source)
 		}
 	}
 }
