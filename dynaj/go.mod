@@ -3,7 +3,7 @@ module tideland.dev/go/stew/dynaj
 go 1.20
 
 require (
-	tideland.dev/go/stew/assert v0.0.0-20230712203431-aea1a3041dd3
+	tideland.dev/go/stew/assert v0.0.0-20230716123003-cbc2daf537b8
 	tideland.dev/go/stew/matcher v0.0.0-20230716123003-cbc2daf537b8
 )
 
