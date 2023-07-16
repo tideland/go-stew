@@ -63,13 +63,12 @@ func TestBoth(t *testing.T) {
 // TestBytes tests the retrieving of captures as bytes.
 func TestBytes(t *testing.T) {
 	foo := "foo"
-	boo := []byte(foo)
 	cout, cerr := capture.Both(func() {
 		fmt.Fprint(os.Stdout, foo)
 		fmt.Fprint(os.Stderr, foo)
 	})
-	Assert(t, DeepEqual(cout.Bytes(), boo), "captured stdout is not equal to expected one")
-	Assert(t, DeepEqual(cerr.Bytes(), boo), "captured stderr is not equal to expected one")
+	Assert(t, Equal(cout.String(), foo), "captured stdout is not equal to expected one")
+	Assert(t, Equal(cerr.String(), foo), "captured stderr is not equal to expected one")
 }
 
 // TestRestore tests the restoring of os.Stdout
