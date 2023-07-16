@@ -1,5 +1,5 @@
-golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df h1:UA2aFVmmsIlefxMk29Dp2juaUSth8Pyn3Tq5Y5mJGME=
-golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df/go.mod h1:FXUEEKJgO7OQYeo8N01OfiKP8RXMtf6e8aTskBGqWdc=
+golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1 h1:MGwJjxBy0HJshjDNfLsYO8xppfqWlA5ZT9OhtUUhTNw=
+golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1/go.mod h1:FXUEEKJgO7OQYeo8N01OfiKP8RXMtf6e8aTskBGqWdc=
 tideland.dev/go/stew/asserts v0.0.0-20230630151952-01be20ff8f86 h1:coL5lLe5W46SVCiyA1o73uTMrXgfVXvNQVL6N0GuqJU=
 tideland.dev/go/stew/asserts v0.0.0-20230630151952-01be20ff8f86/go.mod h1:qRwLftaXSVh7mNrImrpi2qUO5udnbNqjyEe2IfvlG/Q=
 tideland.dev/go/stew/generators v0.0.0-20230630151952-01be20ff8f86 h1:MBTopfwRV40QBIUEbvdORg0OpU+0ebXrhyaZYPQaWYA=
