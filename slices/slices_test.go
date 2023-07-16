@@ -14,7 +14,8 @@ package slices_test
 import (
 	"testing"
 
-	"tideland.dev/go/stew/asserts"
+	. "tideland.dev/go/stew/assert"
+
 	"tideland.dev/go/stew/slices"
 )
 
@@ -24,8 +25,6 @@ import (
 
 // TestAppend verifies the appending of a number of slices.
 func TestAppend(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	tests := []struct {
 		descr  string
 		values [][]int
@@ -55,15 +54,12 @@ func TestAppend(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.Append(test.values...), test.out)
+		Assert(t, DeepEqual(slices.Append(test.values...), test.out), test.descr)
 	}
 }
 
 // TestContainsAll verifies the testing of all slice values.
 func TestContainsAll(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	contains := func(v int) bool { return v < 10 }
 	tests := []struct {
 		descr  string
@@ -98,16 +94,13 @@ func TestContainsAll(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.ContainsAll(test.values, contains), test.out)
+		Assert(t, Equal(slices.ContainsAll(test.values, contains), test.out), test.descr)
 	}
 }
 
 // TestContainsAny verifies the testing of all slice values finding
 // at least one value.
 func TestContainsAny(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	contains := func(v int) bool { return v < 3 }
 	tests := []struct {
 		descr  string
@@ -142,15 +135,12 @@ func TestContainsAny(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.ContainsAny(test.values, contains), test.out)
+		Assert(t, Equal(slices.ContainsAny(test.values, contains), test.out), test.descr)
 	}
 }
 
 // TestDelete verifies the deleting of a first matching value of a slice.
 func TestDelete(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	tests := []struct {
 		descr  string
 		value  int
@@ -201,15 +191,12 @@ func TestDelete(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.Delete(test.value, test.values), test.out)
+		Assert(t, DeepEqual(slices.Delete(test.value, test.values), test.out), test.descr)
 	}
 }
 
 // TestDeleteAll verifies the deleting of all matching values of a slice.
 func TestDeleteAll(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	value := 5
 	tests := []struct {
 		descr  string
@@ -244,15 +231,12 @@ func TestDeleteAll(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.DeleteAll(value, test.values), test.out)
+		Assert(t, DeepEqual(slices.DeleteAll(value, test.values), test.out), test.descr)
 	}
 }
 
 // TestDeleteAllWith verifies the deleting of slice values.
 func TestDeleteAllWith(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	deleteWith := func(v int) bool { return v%2 == 0 }
 	tests := []struct {
 		descr  string
@@ -291,15 +275,12 @@ func TestDeleteAllWith(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.DeleteAllWith(test.values, deleteWith), test.out)
+		Assert(t, DeepEqual(slices.DeleteAllWith(test.values, deleteWith), test.out), test.descr)
 	}
 }
 
 // TestDeleteFirst verifies the deleting of the first slice value.
 func TestDeleteFirst(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	tests := []struct {
 		descr  string
 		values []int
@@ -325,15 +306,12 @@ func TestDeleteFirst(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.DeleteFirst(test.values), test.out)
+		Assert(t, DeepEqual(slices.DeleteFirst(test.values), test.out), test.descr)
 	}
 }
 
 // TestDeleteLast verifies the deleting of the last slice value.
 func TestDeleteLast(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	tests := []struct {
 		descr  string
 		values []int
@@ -359,16 +337,13 @@ func TestDeleteLast(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.DeleteLast(test.values), test.out)
+		Assert(t, DeepEqual(slices.DeleteLast(test.values), test.out), test.descr)
 	}
 }
 
 // TestDeleteWhile verifies the deleting of the slice elements as long
 // as a test returns true.
 func TestDeleteWhile(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	shallDrop := func(v int) bool { return v <= 5 }
 	tests := []struct {
 		descr  string
@@ -403,16 +378,13 @@ func TestDeleteWhile(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.DeleteWhile(test.values, shallDrop), test.out)
+		Assert(t, DeepEqual(slices.DeleteWhile(test.values, shallDrop), test.out), test.descr)
 	}
 }
 
 // TestDeleteWith verifies the deleting of a first matching value of a
 // slice where pred returns true.
 func TestDeleteWith(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	shallDelete := func(v int) bool { return v == 10 }
 	tests := []struct {
 		descr  string
@@ -455,15 +427,12 @@ func TestDeleteWith(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.DeleteWith(test.values, shallDelete), test.out)
+		Assert(t, DeepEqual(slices.DeleteWith(test.values, shallDelete), test.out), test.descr)
 	}
 }
 
 // TestFilter verifies the filtering of slice values.
 func TestFilter(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	filter := func(v int) bool { return v%2 == 0 }
 	tests := []struct {
 		descr  string
@@ -502,15 +471,12 @@ func TestFilter(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.Filter(test.values, filter), test.out)
+		Assert(t, DeepEqual(slices.Filter(test.values, filter), test.out), test.descr)
 	}
 }
 
 // TestFilterMap verifies the filtering and mapping of slice values.
 func TestFilterMap(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	filterMap := func(v int) (int, bool) { return v * 10, v%2 == 0 }
 	tests := []struct {
 		descr  string
@@ -549,15 +515,12 @@ func TestFilterMap(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.FilterMap(test.values, filterMap), test.out)
+		Assert(t, DeepEqual(slices.FilterMap(test.values, filterMap), test.out), test.descr)
 	}
 }
 
 // TestIsEqual verifies the testing of the equality of two slices.
 func TestIsEqual(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	tests := []struct {
 		descr         string
 		first, second []int
@@ -602,17 +565,14 @@ func TestIsEqual(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.IsEqual(test.first, test.second), test.out)
-		assert.Equal(slices.IsEqual(test.second, test.first), test.out)
+		Assert(t, Equal(slices.IsEqual(test.first, test.second), test.out), test.descr)
+		Assert(t, Equal(slices.IsEqual(test.second, test.first), test.out), test.descr)
 	}
 }
 
 // TestIsMember verifies the testing of the membership of a value
 // in a slice.
 func TestIsMember(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	tests := []struct {
 		descr  string
 		values []int
@@ -643,15 +603,12 @@ func TestIsMember(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.IsMember(test.value, test.values), test.out)
+		Assert(t, Equal(slices.IsMember(test.value, test.values), test.out), test.descr)
 	}
 }
 
 // TestIsPrefix verifies the testing of prefix slices.
 func TestIsPrefix(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	tests := []struct {
 		descr  string
 		values []int
@@ -702,15 +659,12 @@ func TestIsPrefix(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.IsPrefix(test.prefix, test.values), test.out)
+		Assert(t, Equal(slices.IsPrefix(test.prefix, test.values), test.out), test.descr)
 	}
 }
 
 // TestIsSuffix verifies the testing of suffix slices.
 func TestIsSuffix(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	tests := []struct {
 		descr  string
 		values []int
@@ -761,15 +715,12 @@ func TestIsSuffix(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.IsSuffix(test.suffix, test.values), test.out)
+		Assert(t, Equal(slices.IsSuffix(test.suffix, test.values), test.out), test.descr)
 	}
 }
 
 // TestJoin verifies the joining of a separator value and the slice values.
 func TestJoin(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	sep := 0
 	tests := []struct {
 		descr  string
@@ -796,15 +747,12 @@ func TestJoin(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.Join(sep, test.values), test.out)
+		Assert(t, DeepEqual(slices.Join(sep, test.values), test.out), test.descr)
 	}
 }
 
 // TestMap verifies the mapping of slice values.
 func TestMap(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	mapper := func(v int) string {
 		itoa := map[int]string{
 			0: "zero",
@@ -845,15 +793,12 @@ func TestMap(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.Map(test.values, mapper), test.out)
+		Assert(t, DeepEqual(slices.Map(test.values, mapper), test.out), test.descr)
 	}
 }
 
 // TestMerge verifies the sorted merging of slices.
 func TestMerge(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	tests := []struct {
 		descr   string
 		valuesA []int
@@ -904,15 +849,12 @@ func TestMerge(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.Merge(test.valuesA, test.valuesB), test.out)
+		Assert(t, DeepEqual(slices.Merge(test.valuesA, test.valuesB), test.out), test.descr)
 	}
 }
 
 // TestMergeWith verifies the sorted merging of slices.
 func TestMergeWith(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	type V struct {
 		k int
 		v string
@@ -972,15 +914,12 @@ func TestMergeWith(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.MergeWith(test.valuesA, test.valuesB, key), test.out)
+		Assert(t, DeepEqual(slices.MergeWith(test.valuesA, test.valuesB, key), test.out), test.descr)
 	}
 }
 
 // TestReverse verifies the reversal of slices.
 func TestReverse(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	tests := []struct {
 		descr  string
 		values []int
@@ -1006,15 +945,12 @@ func TestReverse(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.Reverse(test.values), test.out)
+		Assert(t, DeepEqual(slices.Reverse(test.values), test.out), test.descr)
 	}
 }
 
 // TestSplit veriefies the splitting of slices into two parts.
 func TestSplit(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	tests := []struct {
 		descr  string
 		n      int
@@ -1062,18 +998,15 @@ func TestSplit(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
 		lout, rout := slices.Split(test.n, test.values)
-		assert.Equal(lout, test.lout)
-		assert.Equal(rout, test.rout)
+		Assert(t, DeepEqual(lout, test.lout), test.descr)
+		Assert(t, DeepEqual(rout, test.rout), test.descr)
 	}
 }
 
 // TestSplitWith veriefies the splitting of slices into two parts based
 // on value testing.
 func TestSplitWith(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	tests := []struct {
 		descr  string
 		pred   func(int) bool
@@ -1121,18 +1054,15 @@ func TestSplitWith(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
 		lout, rout := slices.SplitWith(test.values, test.pred)
-		assert.Equal(lout, test.lout)
-		assert.Equal(rout, test.rout)
+		Assert(t, DeepEqual(lout, test.lout), test.descr)
+		Assert(t, DeepEqual(rout, test.rout), test.descr)
 	}
 }
 
 // TestSubslice verifies the convenient retrieval of sections of slices into
 // new created slices.
 func TestSubsclice(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	tests := []struct {
 		descr      string
 		values     []int
@@ -1209,15 +1139,12 @@ func TestSubsclice(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.Subslice(test.values, test.fpos, test.tpos), test.out)
+		Assert(t, DeepEqual(slices.Subslice(test.values, test.fpos, test.tpos), test.out), test.descr)
 	}
 }
 
 // TestSubtract verifies the subtracting of values froma a slice.
 func TestSubtract(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	tests := []struct {
 		descr    string
 		values   []int
@@ -1278,16 +1205,13 @@ func TestSubtract(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.Subtract(test.values, test.subtract), test.out)
+		Assert(t, DeepEqual(slices.Subtract(test.values, test.subtract), test.out), test.descr)
 	}
 }
 
 // TestTakeWhile verifies the copying of the slice values as long
 // as a test returns true.
 func TestTakeWhile(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	shallTake := func(v int) bool { return v <= 5 }
 	tests := []struct {
 		descr  string
@@ -1322,15 +1246,12 @@ func TestTakeWhile(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.TakeWhile(test.values, shallTake), test.out)
+		Assert(t, DeepEqual(slices.TakeWhile(test.values, shallTake), test.out), test.descr)
 	}
 }
 
 // TestUnique verifies the unifying of a slice.
 func TestUnique(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	tests := []struct {
 		descr  string
 		values []int
@@ -1372,15 +1293,12 @@ func TestUnique(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.Unique(test.values), test.out)
+		Assert(t, DeepEqual(slices.Unique(test.values), test.out), test.descr)
 	}
 }
 
 // TestUniqueMerge verifies the unique sorted merging of slices.
 func TestUniqueMerge(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	tests := []struct {
 		descr   string
 		valuesA []int
@@ -1431,15 +1349,12 @@ func TestUniqueMerge(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.UniqueMerge(test.valuesA, test.valuesB), test.out)
+		Assert(t, DeepEqual(slices.UniqueMerge(test.valuesA, test.valuesB), test.out), test.descr)
 	}
 }
 
 // TestUniqueMergeWith verifies the unique sorted merging of slice.
 func TestUniqueMergeWith(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	type V struct {
 		k int
 		v string
@@ -1498,15 +1413,12 @@ func TestUniqueMergeWith(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.UniqueMergeWith(test.valuesA, test.valuesB, key), test.out)
+		Assert(t, DeepEqual(slices.UniqueMergeWith(test.valuesA, test.valuesB, key), test.out), test.descr)
 	}
 }
 
 // TestUnique verifies the unifying of a slice.
 func TestUniqueWith(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	type V struct {
 		k string
 		v int
@@ -1557,15 +1469,12 @@ func TestUniqueWith(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.UniqueWith(test.values, key), test.out)
+		Assert(t, DeepEqual(slices.UniqueWith(test.values, key), test.out), test.descr)
 	}
 }
 
 // TestSearch verifies the search in a slice.
 func TestSearch(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	pred := func(v int) bool {
 		return v == 3
 	}
@@ -1609,10 +1518,9 @@ func TestSearch(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
 		v, ok := slices.Search(pred, test.values)
-		assert.Equal(v, test.out)
-		assert.Equal(ok, test.ok)
+		Assert(t, Equal(v, test.out), test.descr)
+		Assert(t, Equal(ok, test.ok), test.descr)
 	}
 }
 

@@ -15,7 +15,8 @@ import (
 	"fmt"
 	"testing"
 
-	"tideland.dev/go/stew/asserts"
+	. "tideland.dev/go/stew/assert"
+
 	"tideland.dev/go/stew/slices"
 )
 
@@ -25,8 +26,6 @@ import (
 
 // TestFoldL verifies the left folding of a slice.
 func TestFoldL(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	acc := "0"
 	stringer := func(v int, acc string) string { return fmt.Sprintf("%s%d", acc, v) }
 	tests := []struct {
@@ -54,16 +53,13 @@ func TestFoldL(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.FoldL(test.values, acc, stringer), test.out)
+		Assert(t, Equal(slices.FoldL(test.values, acc, stringer), test.out), test.descr)
 	}
 }
 
 // TestFoldLFirst verifies the left folding of a slice with first as
 // accumulator.
 func TestFoldLFirst(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	potentiator := func(v, acc int) int { return acc*10 + v }
 	tests := []struct {
 		descr  string
@@ -90,15 +86,12 @@ func TestFoldLFirst(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.FoldLFirst(test.values, potentiator), test.out)
+		Assert(t, Equal(slices.FoldLFirst(test.values, potentiator), test.out), test.descr)
 	}
 }
 
 // TestFoldR verifies the right folding of a slice.
 func TestFoldR(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	acc := "0"
 	stringer := func(v int, acc string) string { return fmt.Sprintf("%s%d", acc, v) }
 	tests := []struct {
@@ -126,15 +119,12 @@ func TestFoldR(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.FoldR(test.values, acc, stringer), test.out)
+		Assert(t, Equal(slices.FoldR(test.values, acc, stringer), test.out), test.descr)
 	}
 }
 
 // TestFoldRLast verifies the right folding of a slice.
 func TestFoldRLast(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	potentiator := func(v, acc int) int { return acc*10 + v }
 	tests := []struct {
 		descr  string
@@ -161,15 +151,12 @@ func TestFoldRLast(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.FoldRLast(test.values, potentiator), test.out)
+		Assert(t, Equal(slices.FoldRLast(test.values, potentiator), test.out), test.descr)
 	}
 }
 
 // TestMapFoldL verifies the left combined mapping and folding.
 func TestMapFoldL(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	in := "0"
 	plusStringer := func(v int, acc string) (int, string) { return v + 1, fmt.Sprintf("%s%d", acc, v) }
 	tests := []struct {
@@ -202,17 +189,14 @@ func TestMapFoldL(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
 		mapped, out := slices.MapFoldL(test.values, in, plusStringer)
-		assert.Equal(mapped, test.mapped)
-		assert.Equal(out, test.out)
+		Assert(t, DeepEqual(mapped, test.mapped), test.descr)
+		Assert(t, Equal(out, test.out), test.descr)
 	}
 }
 
 // TestMapFoldR verifies the right combined mapping and folding.
 func TestMapFoldR(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	in := "0"
 	plusStringer := func(v int, acc string) (int, string) { return v + 1, fmt.Sprintf("%s%d", acc, v) }
 	tests := []struct {
@@ -245,17 +229,14 @@ func TestMapFoldR(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
 		mapped, out := slices.MapFoldR(test.values, in, plusStringer)
-		assert.Equal(mapped, test.mapped)
-		assert.Equal(out, test.out)
+		Assert(t, DeepEqual(mapped, test.mapped), test.descr)
+		Assert(t, Equal(out, test.out), test.descr)
 	}
 }
 
 // TestPartition verifies the partitioning of slices.
 func TestPartition(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	isMod := func(v int) bool { return v%2 == 0 }
 	tests := []struct {
 		descr         string
@@ -297,10 +278,9 @@ func TestPartition(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
 		satisfying, notSatisfying := slices.Partition(test.values, isMod)
-		assert.Equal(satisfying, test.satisfying)
-		assert.Equal(notSatisfying, test.notSatisfying)
+		Assert(t, DeepEqual(satisfying, test.satisfying), test.descr)
+		Assert(t, DeepEqual(notSatisfying, test.notSatisfying), test.descr)
 	}
 }
 

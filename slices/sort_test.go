@@ -15,7 +15,8 @@ import (
 	"runtime"
 	"testing"
 
-	"tideland.dev/go/stew/asserts"
+	. "tideland.dev/go/stew/assert"
+
 	"tideland.dev/go/stew/generators"
 	"tideland.dev/go/stew/slices"
 )
@@ -26,8 +27,6 @@ import (
 
 // TestSort verifies the standard sorting of slices.
 func TestSort(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	tests := []struct {
 		descr  string
 		values []int
@@ -65,15 +64,12 @@ func TestSort(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.Sort(test.values), test.out)
+		Assert(t, DeepEqual(slices.Sort(test.values), test.out), test.descr)
 	}
 }
 
 // TestSortWith verifies the sorting of slices with a less function.
 func TestSortWith(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	less := func(vs []string, i, j int) bool { return len(vs[i]) < len(vs[j]) }
 	tests := []struct {
 		descr  string
@@ -112,15 +108,12 @@ func TestSortWith(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.SortWith(test.values, less), test.out)
+		Assert(t, DeepEqual(slices.SortWith(test.values, less), test.out), test.descr)
 	}
 }
 
 // TestIsSorted verifies the check of sorted slices.
 func TestIsSorted(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	tests := []struct {
 		descr  string
 		values []int
@@ -154,27 +147,23 @@ func TestIsSorted(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.IsSorted(test.values), test.out)
+		Assert(t, Equal(slices.IsSorted(test.values), test.out), test.descr)
 	}
 }
 
 // TestLargeSort verifies the sorting of large slices with a parallel QuickSort.
 func TestLargeSort(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	size := runtime.NumCPU()*2048 + 1
 	gen := generators.New(generators.FixedRand())
 	ivs := gen.Ints(0, 10000, size)
 
-	assert.False(slices.IsSorted(ivs))
+	Assert(t, False(slices.IsSorted(ivs)), "unsorted slice")
 	ovs := slices.Sort(ivs)
-	assert.True(slices.IsSorted(ovs))
+	Assert(t, True(slices.IsSorted(ovs)), "sorted slice")
 }
 
 // TestIsSortedWith verifies the check of sorted slices.
 func TestIsSortedWith(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	less := func(a, b string) bool { return len(a) < len(b) }
 	tests := []struct {
 		descr  string
@@ -209,15 +198,12 @@ func TestIsSortedWith(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-		assert.Equal(slices.IsSortedWith(test.values, less), test.out)
+		Assert(t, Equal(slices.IsSortedWith(test.values, less), test.out), test.descr)
 	}
 }
 
 // TestShuffle verifies the random shuffling of slices.
 func TestShuffle(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
 	tests := []struct {
 		descr  string
 		values []int
@@ -247,14 +233,12 @@ func TestShuffle(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Logf(test.descr)
-
 		shuffled := slices.Shuffle(test.values)
 		sorted := slices.Sort(shuffled)
 
-		assert.Equal(len(shuffled), len(test.values))
-		assert.Equal(slices.IsSorted(shuffled), test.sorted)
-		assert.Equal(slices.IsSorted(sorted), true)
+		Assert(t, Equal(len(shuffled), len(test.values)), test.descr)
+		Assert(t, Equal(slices.IsSorted(shuffled), test.sorted), test.descr)
+		Assert(t, Equal(slices.IsSorted(sorted), true), test.descr)
 	}
 }
 
