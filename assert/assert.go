@@ -313,39 +313,33 @@ func False(v any) Assertion {
 // Equal asserts that two comparable values are equal.
 func Equal[T comparable](va, vb T) Assertion {
 	return func() (bool, string, error) {
-		var err error
 		ok := va == vb
-		info := ""
 		if !ok {
-			info = typedValue(va) + " is not equal to " + typedValue(vb)
+			return ok, typedValue(va) + " is not equal to " + typedValue(vb), nil
 		}
-		return ok, info, err
+		return ok, "", nil
 	}
 }
 
 // Different asserts that two comparable values are different.
 func Different[T comparable](va, vb T) Assertion {
 	return func() (bool, string, error) {
-		var err error
 		ok := va != vb
-		info := ""
 		if !ok {
-			info = typedValue(va) + " is equal to " + typedValue(vb)
+			return ok, typedValue(va) + " is equal to " + typedValue(vb), nil
 		}
-		return ok, info, err
+		return ok, "", nil
 	}
 }
 
 // DeepEqual asserts that two values are deep equal.
 func DeepEqual(va, vb any) Assertion {
 	return func() (bool, string, error) {
-		var err error
 		ok := reflect.DeepEqual(va, vb)
-		info := ""
 		if !ok {
-			info = typedValue(va) + " is not deep equal to " + typedValue(vb)
+			return ok, typedValue(va) + " is not deep equal to " + typedValue(vb), nil
 		}
-		return ok, info, err
+		return ok, "", nil
 	}
 }
 
