@@ -104,7 +104,7 @@ func (d *Document) NodeAt(path Path) *Node {
 	}
 	element, err := elementAt(d.root, splitPath(path))
 	if err != nil {
-		node.err = fmt.Errorf("invalid path %q: %v", path, err)
+		node.err = fmt.Errorf("invalid path %q", path)
 	} else {
 		node.element = element
 	}

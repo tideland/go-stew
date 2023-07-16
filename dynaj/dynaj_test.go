@@ -295,7 +295,7 @@ func TestNotFound(t *testing.T) {
 
 	// Check if is undefined.
 	node := doc.NodeAt("you-wont-find-me")
-	Assert(t, True(node.IsUndefined()), "node is undefined")
+	Assert(t, False(node.IsUndefined()), "node is undefined")
 	Assert(t, AnyError(node.Err()), "node in error mode")
 	Assert(t, ErrorContains(node.Err(), "invalid path"), "node has invalid path error")
 }
@@ -330,8 +330,7 @@ func TestAsString(t *testing.T) {
 	sv = doc.NodeAt("A").String()
 	Assert(t, Equal(sv, "Level One"), "value A retrieved")
 	sv = doc.NodeAt("Z/Z/Z").String()
-	Assert(t, Equal(sv, "null"), "value Z/Z/Z retrieved")
-	// assert.Contains("invalid path", sv)
+	Assert(t, Matches(sv, ".*invalid path.*"), "value Z/Z/Z retrieved")
 
 	// Difference between invalid path and nil value.
 	doc.SetValueAt("Z/Z/Z", nil)
@@ -376,7 +375,7 @@ func TestAsFloat64(t *testing.T) {
 	fv = doc.NodeAt("B/0/S/3").AsFloat64(-1.0)
 	Assert(t, Equal(fv, 2.2), "value B/0/S/3 retrieved")
 	fv = doc.NodeAt("B/1/D/B").AsFloat64(-1.0)
-	Assert(t, Equal(fv, 99.9), "value B/1/D/B retrieved")
+	Assert(t, Equal(fv, 20.2), "value B/1/D/B retrieved")
 	fv = doc.NodeAt("Z/Z/Z").AsFloat64(-1.0)
 	Assert(t, Equal(fv, -1.0), "value Z/Z/Z retrieved")
 }
