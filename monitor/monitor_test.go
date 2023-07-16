@@ -15,7 +15,8 @@ import (
 	"testing"
 	"time"
 
-	"tideland.dev/go/stew/asserts"
+	. "tideland.dev/go/stew/assert"
+
 	"tideland.dev/go/stew/generators"
 	"tideland.dev/go/stew/monitor"
 )
@@ -26,20 +27,19 @@ import (
 
 // TestSimpleMonitor test creating and stopping a monitor.
 func TestSimpleMonitor(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	m := monitor.New()
 	defer m.Stop()
 
-	assert.True(m.StopWatch().Measure("simple", func() { time.Sleep(time.Millisecond) }) > 0)
+	measures := m.StopWatch().Measure("simple", func() { time.Sleep(time.Millisecond) })
+	Assert(t, True(measures > 0), "stop watch is not nil")
 
 	mp, err := m.StopWatch().Read("simple")
-	assert.NoError(err)
-	assert.Equal(mp.ID, "simple")
+	Assert(t, NoError(err), "stop watch read works")
+	Assert(t, Equal(mp.ID, "simple"), "stop watch id is correct")
 }
 
 // TestStopWatch tests the stop watch.
 func TestStopWatch(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 	m := monitor.New()
 	defer m.Stop()
@@ -52,14 +52,14 @@ func TestStopWatch(t *testing.T) {
 	}
 
 	sw, err := m.StopWatch().Read("doesnotexist")
-	assert.ErrorMatch(err, `watch value 'doesnotexist' does not exist`)
+	Assert(t, ErrorMatches(err, `watch value 'doesnotexist' does not exist`), "error for non-existing watch")
 
 	// Check access of one measuring point.
 	sw, err = m.StopWatch().Read("watch")
-	assert.Nil(err)
-	assert.Equal(sw.ID, "watch")
-	assert.Equal(sw.Count, 500)
-	assert.True(sw.Min <= sw.Avg && sw.Avg <= sw.Max)
+	Assert(t, NoError(err), "no error for existing watch")
+	Assert(t, Equal(sw.ID, "watch"), "watch id is correct")
+	Assert(t, Equal(sw.Count, 500), "watch count is correct")
+	Assert(t, Range(sw.Avg, sw.Min, sw.Max), "watch avg is in range")
 
 	// Check iteration over all measuring points.
 	wvs := monitor.WatchValues{}
@@ -67,8 +67,8 @@ func TestStopWatch(t *testing.T) {
 		wvs = append(wvs, wv)
 		return nil
 	})
-	assert.Nil(err)
-	assert.Length(wvs, 1)
+	Assert(t, NoError(err), "no error for iteration")
+	Assert(t, Length(wvs, 1), "one watch value")
 
 	// Check resetting the measurings.
 	m.Reset()
@@ -78,13 +78,12 @@ func TestStopWatch(t *testing.T) {
 		wvs = append(wvs, wv)
 		return nil
 	})
-	assert.Nil(err)
-	assert.Empty(wvs)
+	Assert(t, NoError(err), "no error for iteration")
+	Assert(t, Empty(wvs), "no watch values")
 }
 
 // Test of the stay-set indicators  of the monitor.
 func TestStaySetIndicators(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	gen := generators.New(generators.FixedRand())
 	m := monitor.New()
 	defer m.Stop()
@@ -100,14 +99,14 @@ func TestStaySetIndicators(t *testing.T) {
 	}
 
 	iv, err := m.StaySetIndicator().Read("doesnotexist")
-	assert.ErrorMatch(err, `indicator value 'doesnotexist' does not exist`)
+	Assert(t, ErrorMatches(err, `indicator value 'doesnotexist' does not exist`), "error for non-existing indicator")
 
 	// Check access of one stay-set indicator.
 	iv, err = m.StaySetIndicator().Read("foo")
-	assert.Nil(err)
-	assert.Equal(iv.ID, "foo")
-	assert.Equal(iv.Count, 99)
-	assert.True(iv.Min <= iv.Current && iv.Current <= iv.Max)
+	Assert(t, NoError(err), "no error for existing indicator")
+	Assert(t, Equal(iv.ID, "foo"), "indicator id is correct")
+	Assert(t, Equal(iv.Count, 99), "indicator count is correct")
+	Assert(t, Range(iv.Current, iv.Min, iv.Max), "indicator current is in range")
 
 	// Check iteration over all measuring points.
 	ivs := monitor.IndicatorValues{}
@@ -115,8 +114,8 @@ func TestStaySetIndicators(t *testing.T) {
 		ivs = append(ivs, iv)
 		return nil
 	})
-	assert.Nil(err)
-	assert.Length(ivs, 5)
+	Assert(t, NoError(err), "no error for iteration")
+	Assert(t, Length(ivs, 5), "five indicator values")
 
 	// Check resetting the measurings.
 	m.Reset()
@@ -126,8 +125,8 @@ func TestStaySetIndicators(t *testing.T) {
 		ivs = append(ivs, iv)
 		return nil
 	})
-	assert.Nil(err)
-	assert.Empty(ivs)
+	Assert(t, NoError(err), "no error for iteration")
+	Assert(t, Empty(ivs), "no indicator values")
 }
 
 //--------------------
