@@ -17,7 +17,8 @@ import (
 	"testing"
 	"time"
 
-	"tideland.dev/go/stew/asserts"
+	. "tideland.dev/go/stew/assert"
+
 	"tideland.dev/go/stew/wait"
 )
 
@@ -27,7 +28,6 @@ import (
 
 // TestThrottle verifies the throttling of parallel processed events.
 func TestThrottle(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	tests := []struct {
 		name    string
 		limit   wait.Limit
@@ -65,58 +65,57 @@ func TestThrottle(t *testing.T) {
 	}
 	// Run the different tests.
 	for _, test := range tests {
-		assert.Logf("test: %s", test.name)
-		throttle := wait.NewThrottle(test.limit, test.burst)
-		ctx := context.Background()
-		if test.timeout > 0 {
-			// Add a timeout to the context.
-			var cancel context.CancelFunc
-			ctx, cancel = context.WithTimeout(ctx, test.timeout)
-			defer cancel()
-		}
-		var wg sync.WaitGroup
-		wg.Add(test.tasks)
-		cc := &concurrencyCounter{}
-		start := time.Now()
-		task := func() error {
-			cc.incr()
-			defer cc.decr()
-			time.Sleep(25 * time.Millisecond)
-			return nil
-		}
-		for i := 0; i < test.tasks; i++ {
-			// Process the task in a goroutine.
-			go func() {
-				err := throttle.Process(ctx, task)
-				wg.Done()
-				if test.err == "" {
-					assert.NoError(err)
-				} else {
-					assert.ErrorContains(err, test.err)
-				}
-			}()
-		}
-		wg.Wait()
-		elapsed := time.Since(start)
-		assert.Logf("elapsed: %v", elapsed)
-		// Check the results.
-		if test.burst > 0 {
-			assert.Equal(cc.max(), test.burst, "maximum number of parallel goroutines defined by burst")
-		}
-		switch {
-		case test.limit == 0 && test.burst == 0:
-			assert.Equal(cc.max(), 0)
-		case test.limit > 0 && test.burst == 1:
-			expected := (time.Duration(test.tasks) / time.Duration(test.limit)) * time.Second
-			tenth := expected / 10
-			assert.Range(elapsed, expected-tenth, expected+tenth)
-		}
+		t.Run(test.name, func(t *testing.T) {
+			throttle := wait.NewThrottle(test.limit, test.burst)
+			ctx := context.Background()
+			if test.timeout > 0 {
+				// Add a timeout to the context.
+				var cancel context.CancelFunc
+				ctx, cancel = context.WithTimeout(ctx, test.timeout)
+				defer cancel()
+			}
+			var wg sync.WaitGroup
+			wg.Add(test.tasks)
+			cc := &concurrencyCounter{}
+			start := time.Now()
+			task := func() error {
+				cc.incr()
+				defer cc.decr()
+				time.Sleep(25 * time.Millisecond)
+				return nil
+			}
+			for i := 0; i < test.tasks; i++ {
+				// Process the task in a goroutine.
+				go func() {
+					err := throttle.Process(ctx, task)
+					wg.Done()
+					if test.err == "" {
+						Assert(t, NoError(err), "no error expected")
+					} else {
+						Assert(t, ErrorContains(err, test.err), "error expected")
+					}
+				}()
+			}
+			wg.Wait()
+			elapsed := time.Since(start)
+			// Check the results.
+			if test.burst > 0 {
+				Assert(t, Equal(cc.max(), test.burst), "maximum number of parallel goroutines defined by burst")
+			}
+			switch {
+			case test.limit == 0 && test.burst == 0:
+				Assert(t, Equal(cc.max(), 0), "no parallel goroutines allowed")
+			case test.limit > 0 && test.burst == 1:
+				expected := (time.Duration(test.tasks) / time.Duration(test.limit)) * time.Second
+				tenth := expected / 10
+				Assert(t, Range(elapsed, expected-tenth, expected+tenth), "elapsed time in range")
+			}
+		})
 	}
 }
 
 // TestThrottleBurst verifies the influence of the burst on throttling.
 func TestThrottleBurst(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	results := [3][3]struct {
 		burst   int
 		tasks   int
@@ -125,7 +124,6 @@ func TestThrottleBurst(t *testing.T) {
 	// Run nested tests.
 	for i, burst := range []int{1, 5, 100} {
 		for j, tasks := range []int{10, 50, 10000} {
-			assert.Logf("burst: %d, tasks: %d", burst, tasks)
 			throttle := wait.NewThrottle(wait.InfLimit, burst)
 			ctx := context.Background()
 			var wg sync.WaitGroup
@@ -151,7 +149,6 @@ func TestThrottleBurst(t *testing.T) {
 			}
 			wg.Wait()
 			elapsed := time.Since(start)
-			assert.Logf("elapsed: %v", elapsed)
 			results[i][j].burst = burst
 			results[i][j].tasks = tasks
 			results[i][j].elapsed = elapsed

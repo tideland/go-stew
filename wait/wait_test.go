@@ -16,7 +16,8 @@ import (
 	"testing"
 	"time"
 
-	"tideland.dev/go/stew/asserts"
+	. "tideland.dev/go/stew/assert"
+
 	"tideland.dev/go/stew/wait"
 )
 
@@ -26,7 +27,6 @@ import (
 
 // TestPolls verifies Poll() with different parameters.
 func TestPolls(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	tests := []struct {
 		name     string
 		ticker   func() wait.TickerFunc
@@ -122,12 +122,11 @@ func TestPolls(t *testing.T) {
 	// Run tests.
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			assert.SetFailable(t)
 			ctx := context.Background()
 			if test.duration != 0 {
 				var cancel context.CancelFunc
 				ctx, cancel = context.WithTimeout(ctx, test.duration)
-				assert.NotNil(cancel)
+				Assert(t, NotNil(cancel), "context cancel function is nil")
 			}
 			count := 0
 			condition := func() (bool, error) {
@@ -139,10 +138,10 @@ func TestPolls(t *testing.T) {
 			}
 			err := wait.Poll(ctx, test.ticker(), condition)
 			if test.err == "" {
-				assert.NoError(err)
-				assert.Equal(count, test.count)
+				Assert(t, NoError(err), "no error expected")
+				Assert(t, Equal(count, test.count), "wrong count")
 			} else {
-				assert.ErrorContains(err, test.err)
+				Assert(t, ErrorContains(err, test.err), "wrong error")
 			}
 		})
 	}
@@ -150,7 +149,6 @@ func TestPolls(t *testing.T) {
 
 // TestConvenience verifies the diverse convenience functions for Poll().
 func TestConvenience(t *testing.T) {
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	tests := []struct {
 		name     string
 		duration time.Duration
@@ -215,12 +213,11 @@ func TestConvenience(t *testing.T) {
 	// Run tests.
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			assert.SetFailable(t)
 			ctx := context.Background()
 			if test.duration != 0 {
 				var cancel context.CancelFunc
 				ctx, cancel = context.WithTimeout(ctx, test.duration)
-				assert.NotNil(cancel)
+				Assert(t, NotNil(cancel), "context cancel function is nil")
 			}
 			count := 0
 			condition := func() (bool, error) {
@@ -232,10 +229,10 @@ func TestConvenience(t *testing.T) {
 			}
 			err := test.poll(ctx, condition)
 			if test.err == "" {
-				assert.NoError(err)
-				assert.Equal(count, test.count)
+				Assert(t, NoError(err), "no error expected")
+				Assert(t, Equal(count, test.count), "wrong count")
 			} else {
-				assert.ErrorContains(err, test.err)
+				Assert(t, ErrorContains(err, test.err), "wrong error")
 			}
 		})
 	}
@@ -244,10 +241,6 @@ func TestConvenience(t *testing.T) {
 // TestPollWithJitter tests the polling of conditions in a maximum
 // number of intervals.
 func TestPollWithJitter(t *testing.T) {
-	// Init.
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
-	// Tests.
 	timestamps := []time.Time{}
 	err := wait.Poll(
 		context.Background(),
@@ -260,12 +253,12 @@ func TestPollWithJitter(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.NoError(err)
-	assert.Length(timestamps, 10)
+	Assert(t, NoError(err), "no error expected")
+	Assert(t, Length(timestamps, 10), "wrong number of timestamps")
 	for i := 1; i < 10; i++ {
 		diff := timestamps[i].Sub(timestamps[i-1])
 		// 10% upper tolerance.
-		assert.Range(diff, 50*time.Millisecond, 110*time.Millisecond)
+		Assert(t, Range(diff, 50*time.Millisecond, 110*time.Millisecond), "wrong interval")
 	}
 
 	timestamps = []time.Time{}
@@ -276,12 +269,12 @@ func TestPollWithJitter(t *testing.T) {
 		}
 		return false, nil
 	})
-	assert.NoError(err)
-	assert.Length(timestamps, 10)
+	Assert(t, NoError(err), "no error expected")
+	Assert(t, Length(timestamps, 10), "wrong number of timestamps")
 	for i := 1; i < 10; i++ {
 		diff := timestamps[i].Sub(timestamps[i-1])
 		// 10% upper tolerance.
-		assert.Range(diff, 50*time.Millisecond, 110*time.Millisecond)
+		Assert(t, Range(diff, 50*time.Millisecond, 110*time.Millisecond), "wrong interval")
 	}
 
 	timestamps = []time.Time{}
@@ -293,8 +286,8 @@ func TestPollWithJitter(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.ErrorContains(err, "exceeded")
-	assert.Range(len(timestamps), 10, 25)
+	Assert(t, ErrorContains(err, "exceeded"), "exceeded expected")
+	Assert(t, Range(len(timestamps), 10, 25), "wrong number of timestamps")
 
 	timestamps = []time.Time{}
 	err = wait.Poll(
@@ -305,8 +298,8 @@ func TestPollWithJitter(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.ErrorContains(err, "exceeded")
-	assert.Empty(timestamps)
+	Assert(t, ErrorContains(err, "exceeded"), "exceeded expected")
+	Assert(t, Empty(timestamps), "no timestamps expected")
 
 	timestamps = []time.Time{}
 	ctx, cancel := context.WithTimeout(context.Background(), 350*time.Millisecond)
@@ -319,13 +312,12 @@ func TestPollWithJitter(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.ErrorContains(err, "cancelled")
+	Assert(t, ErrorContains(err, "cancelled"), "cancelled expected")
 }
 
 // TestUserDefinedTicker tests the polling of conditions with a user-defined ticker.
 func TestUserDefinedTicker(t *testing.T) {
 	// Init.
-	assert := asserts.NewTesting(t, asserts.FailStop)
 	ticker := func(ctx context.Context) <-chan struct{} {
 		// Ticker runs 1000 times.
 		tickc := make(chan struct{})
@@ -360,8 +352,8 @@ func TestUserDefinedTicker(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.NoError(err)
-	assert.Equal(count, 500)
+	Assert(t, NoError(err), "no error expected")
+	Assert(t, Equal(count, 500), "wrong count")
 
 	count = 0
 	err = wait.Poll(
@@ -372,8 +364,8 @@ func TestUserDefinedTicker(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.ErrorContains(err, "exceeded")
-	assert.Equal(count, 1000, "exceeded with a count")
+	Assert(t, ErrorContains(err, "exceeded"), "exceeded expected")
+	Assert(t, Equal(count, 1000), "wrong count")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Millisecond)
 	defer cancel()
@@ -385,15 +377,11 @@ func TestUserDefinedTicker(t *testing.T) {
 			return false, nil
 		},
 	)
-	assert.ErrorContains(err, "cancelled")
+	Assert(t, ErrorContains(err, "cancelled"), "cancelled expected")
 }
 
 // TestPanic tests the handling of panics during condition checks.
 func TestPanic(t *testing.T) {
-	// Init.
-	assert := asserts.NewTesting(t, asserts.FailStop)
-
-	// Test.
 	count := 0
 	err := wait.WithInterval(context.Background(), 10*time.Millisecond, func() (bool, error) {
 		count++
@@ -402,8 +390,8 @@ func TestPanic(t *testing.T) {
 		}
 		return false, nil
 	})
-	assert.ErrorContains(err, "panic")
-	assert.Equal(count, 5)
+	Assert(t, ErrorContains(err, "panic"), "panic expected")
+	Assert(t, Equal(count, 5), "wrong count")
 }
 
 //--------------------
