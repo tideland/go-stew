@@ -25,7 +25,6 @@ import (
 
 // TestStandard tests the standard UUID.
 func TestStandard(t *testing.T) {
-	// Asserts.
 	uuidA := uuid.New()
 	Assert(t, Equal(uuidA.Version(), uuid.V4), "wrong UUID version")
 	uuidAShortStr := uuidA.ShortString()
@@ -43,11 +42,34 @@ func TestStandard(t *testing.T) {
 	Assert(t, Different(uuidB, uuidC), "UUID copy not independent")
 }
 
+// TestNamespaces tests the creation of the different standard namespaces.
+func TestNamespaces(t *testing.T) {
+	Assert(t, Equal(uuid.NamespaceDNS().String(), "6ba7b810-9dad-11d1-80b4-00c04fd430c8"), "wrong UUID for DNS namespace")
+	Assert(t, Equal(uuid.NamespaceURL().String(), "6ba7b811-9dad-11d1-80b4-00c04fd430c8"), "wrong UUID for URL namespace")
+	Assert(t, Equal(uuid.NamespaceOID().String(), "6ba7b812-9dad-11d1-80b4-00c04fd430c8"), "wrong UUID for OID namespace")
+	Assert(t, Equal(uuid.NamespaceX500().String(), "6ba7b814-9dad-11d1-80b4-00c04fd430c8"), "wrong UUID for X.500 namespace")
+}
+
+// TestRepeatability tests the repeatability of UUIDs v3 and v5 with same namespace and name.
+func TestRepeatability(t *testing.T) {
+	ns := uuid.NamespaceDNS()
+	name := []byte("tideland.dev")
+	uuidV3A, err := uuid.NewV3(ns, name)
+	Assert(t, NoError(err), "error creating UUID V3")
+	uuidV3B, err := uuid.NewV3(ns, name)
+	Assert(t, NoError(err), "error creating UUID V3")
+	Assert(t, Equal(uuidV3A, uuidV3B), "UUID V3 not repeatable")
+	uuidV5A, err := uuid.NewV5(ns, name)
+	Assert(t, NoError(err), "error creating UUID V5")
+	uuidV5B, err := uuid.NewV5(ns, name)
+	Assert(t, NoError(err), "error creating UUID V5")
+	Assert(t, Equal(uuidV5A, uuidV5B), "UUID V5 not repeatable")
+}
+
 // TestVersions tests the creation of different UUID versions.
 func TestVersions(t *testing.T) {
 	ns := uuid.NamespaceOID()
 	name := []byte{1, 3, 3, 7}
-	// Asserts.
 	uuidV1, err := uuid.NewV1()
 	Assert(t, NoError(err), "error creating UUID V1")
 	Assert(t, Equal(uuidV1.Version(), uuid.V1), "wrong UUID version")
@@ -66,11 +88,19 @@ func TestVersions(t *testing.T) {
 	Assert(t, Equal(uuidV5.Variant(), uuid.VariantRFC4122), "wrong UUID variant")
 }
 
+// TestNil tests the nil UUID.
+func TestNil(t *testing.T) {
+	var uuidNil uuid.UUID
+	Assert(t, Equal(uuidNil.Version(), 0), "UUID version")
+	Assert(t, Equal(uuidNil.Variant(), uuid.VariantNCS), "UUID variant")
+	Assert(t, Equal(uuidNil.String(), "00000000-0000-0000-0000-000000000000"), "UUID string")
+	Assert(t, Equal(uuidNil.ShortString(), "00000000000000000000000000000000"), "UUID short string")
+}
+
 // TestParse tests creating UUIDs from different string representations.
 func TestParse(t *testing.T) {
 	ns := uuid.NamespaceOID()
 	name := []byte{1, 3, 3, 7}
-	// Asserts.
 	tests := []struct {
 		source  func() string
 		version uuid.Version
