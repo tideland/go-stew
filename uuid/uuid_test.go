@@ -55,15 +55,15 @@ func TestRepeatability(t *testing.T) {
 	ns := uuid.NamespaceDNS()
 	name := []byte("tideland.dev")
 	uuidV3A, err := uuid.NewV3(ns, name)
-	Assert(t, NoError(err), "error creating UUID V3")
+	Assert(t, NoError(err), "error creating UUID v3")
 	uuidV3B, err := uuid.NewV3(ns, name)
-	Assert(t, NoError(err), "error creating UUID V3")
-	Assert(t, Equal(uuidV3A, uuidV3B), "UUID V3 not repeatable")
+	Assert(t, NoError(err), "error creating UUID v3")
+	Assert(t, Equal(uuidV3A, uuidV3B), "UUID v3 not repeatable")
 	uuidV5A, err := uuid.NewV5(ns, name)
-	Assert(t, NoError(err), "error creating UUID V5")
+	Assert(t, NoError(err), "error creating UUID v5")
 	uuidV5B, err := uuid.NewV5(ns, name)
-	Assert(t, NoError(err), "error creating UUID V5")
-	Assert(t, Equal(uuidV5A, uuidV5B), "UUID V5 not repeatable")
+	Assert(t, NoError(err), "error creating UUID v5")
+	Assert(t, Equal(uuidV5A, uuidV5B), "UUID v5 not repeatable")
 }
 
 // TestVersions tests the creation of different UUID versions.
