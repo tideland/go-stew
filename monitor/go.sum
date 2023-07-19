@@ -1,8 +1,0 @@
-golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1 h1:MGwJjxBy0HJshjDNfLsYO8xppfqWlA5ZT9OhtUUhTNw=
-golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1/go.mod h1:FXUEEKJgO7OQYeo8N01OfiKP8RXMtf6e8aTskBGqWdc=
-tideland.dev/go/stew/assert v0.0.0-20230715205245-cfc281e50f51 h1:Kpm2MhjzgHUy4mRQuztJx3Vm0XPkBNr1Hl0xu7J9zxc=
-tideland.dev/go/stew/assert v0.0.0-20230715205245-cfc281e50f51/go.mod h1:/4lBvcVEWQICp1f4Qg784SyIBOSvPgABNaG92BTiiiY=
-tideland.dev/go/stew/asserts v0.0.0-20230630194713-325e15e4eb39 h1:WLbRG/+hfeM+yNFGvRcKjI22dNvRqf5hleVJxCwAEE0=
-tideland.dev/go/stew/asserts v0.0.0-20230630194713-325e15e4eb39/go.mod h1:qRwLftaXSVh7mNrImrpi2qUO5udnbNqjyEe2IfvlG/Q=
-tideland.dev/go/stew/generators v0.0.0-20230630194713-325e15e4eb39 h1:eN7SibH9rdAnsAzV3HHBDaVQl6ZnYAmfPkeC+p0CfHg=
-tideland.dev/go/stew/generators v0.0.0-20230630194713-325e15e4eb39/go.mod h1:5LCJsbLWSR0946+oIDfRh+qPW05pCl5OsB90mL8Cr8U=
