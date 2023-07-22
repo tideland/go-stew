@@ -60,6 +60,13 @@ func Assert(stb SubTB, assert Assertion, format string, a ...any) bool {
 // ASSERTIONS
 //------------------------------
 
+// Fail always fails.
+func Fail(info string) Assertion {
+	return func() (bool, string, error) {
+		return false, info, nil
+	}
+}
+
 // Nil asserts that a value is nil.
 func Nil(v any) Assertion {
 	return func() (bool, string, error) {
@@ -162,7 +169,7 @@ func ErrorContains(v any, contains string) Assertion {
 			info = typedValue(v) + " is or returns no error"
 		}
 		if ok && !strings.Contains(ierr.Error(), contains) {
-			info = typedValue(v) + " does not con	tain " + contains
+			info = fmt.Sprintf("%q does not contain %q", ierr.Error(), contains)
 			ok = false
 		}
 		return ok, info, err

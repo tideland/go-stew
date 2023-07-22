@@ -26,6 +26,16 @@ import (
 // TESTS
 //------------------------------
 
+// TestFail tests the Fail assertion.
+func TestFail(t *testing.T) {
+	stb := newSubTB()
+
+	Assert(stb, Fail("must fail"), "ouch")
+
+	Assert(t, Equal(stb.Calls(), 1), "should be one call")
+	Assert(t, Equal(stb.Len(), 1), "should be one fail")
+}
+
 // TestNil tests the Nil assertion.
 func TestNil(t *testing.T) {
 	stb := newSubTB()
