@@ -40,11 +40,11 @@ func TestCompare(t *testing.T) {
 
 	diff, err = dynaj.Compare(first, second)
 	Assert(t, NoError(err), "first unmarshalled document compared with second")
-	Assert(t, Length(diff.Differences(), 13), "first unmarshalled document compared with second has differences")
+	Assert(t, Length(diff.Differences(), 15), "first unmarshalled document compared with second has differences")
 
 	diff, err = dynaj.CompareDocuments(firstDoc, secondDoc)
 	Assert(t, NoError(err), "first document compared with second")
-	Assert(t, Length(diff.Differences(), 13), "first document compared with second has differences")
+	Assert(t, Length(diff.Differences(), 15), "first document compared with second has differences")
 
 	for _, path := range diff.Differences() {
 		fv, sv := diff.DifferenceAt(path)
@@ -59,7 +59,7 @@ func TestCompare(t *testing.T) {
 	Assert(t, NoError(err), "second document marshalled")
 	diff, err = dynaj.Compare(first, second)
 	Assert(t, NoError(err), "first marshalled document compared with second")
-	Assert(t, Length(diff.Differences(), 13), "first marshalled document compared with second has differences")
+	Assert(t, Length(diff.Differences(), 15), "first marshalled document compared with second has differences")
 
 	// Special case of empty arrays, objects, and null.
 	first = []byte(`{}`)

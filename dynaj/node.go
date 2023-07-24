@@ -16,6 +16,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"tideland.dev/go/stew/matcher"
 )
@@ -163,6 +164,44 @@ func (node *Node) AsBool(dv bool) bool {
 	return dv
 }
 
+// AsTime returns the value as time.Time.
+func (node *Node) AsTime(format string, dv time.Time) time.Time {
+	if node.IsUndefined() {
+		return dv
+	}
+	switch tv := node.element.(type) {
+	case time.Time:
+		return tv
+	case string:
+		t, err := time.Parse(format, tv)
+		if err != nil {
+			return dv
+		}
+		return t
+	}
+	return dv
+}
+
+// AsDuration returns the value as time.Duration.
+func (node *Node) AsDuration(dv time.Duration) time.Duration {
+	if node.IsUndefined() {
+		return dv
+	}
+	switch tv := node.element.(type) {
+	case time.Duration:
+		return tv
+	case float64:
+		return time.Duration(tv)
+	case string:
+		d, err := time.ParseDuration(tv)
+		if err != nil {
+			return dv
+		}
+		return d
+	}
+	return dv
+}
+
 // Equals compares a value with the passed one.
 func (node *Node) Equals(other *Node) bool {
 	switch {
@@ -268,7 +307,7 @@ func (node *Node) Process(process Processor) error {
 	return nil
 }
 
-// Range takes  the node and processes it with the passed processor
+// Range takes the node and processes it with the passed processor
 // function. In case of an object all keys and in case of an array
 // all indices will be processed. It is not working recursively.
 func (node *Node) Range(process Processor) error {

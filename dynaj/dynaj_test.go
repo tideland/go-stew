@@ -25,7 +25,7 @@ import (
 // TESTS
 //--------------------
 
-// TestBuildTypes tests the creation of documents with different
+// TestBuildTypes verifies the creation of documents with different
 // root types.
 func TestBuildTypes(t *testing.T) {
 	// Just one value.
@@ -57,7 +57,7 @@ func TestBuildTypes(t *testing.T) {
 	Assert(t, Equal(iv, 1), "value /0 retrieved")
 }
 
-// TestBuilding tests the creation of documents.
+// TestBuilding verifies the creation of documents.
 func TestBuilding(t *testing.T) {
 	// Positive cases.
 	doc := dynaj.NewDocument()
@@ -121,7 +121,7 @@ func TestBuilding(t *testing.T) {
 	Assert(t, Equal(iv, 2), "value /a/b/x retrieved")
 }
 
-// TestDeleteValueAt tests the deletion of values.
+// TestDeleteValueAt verifies the deletion of values.
 func TestDeleteValueAt(t *testing.T) {
 	// Create a document.
 	doc := dynaj.NewDocument()
@@ -180,7 +180,7 @@ func TestDeleteValueAt(t *testing.T) {
 	Assert(t, ErrorContains(err, "invalid path"), "invalid path")
 }
 
-// TestDeleteElementAt tests the deletion of elements.
+// TestDeleteElementAt verifies the deletion of elements.
 func TestDeleteElementAt(t *testing.T) {
 	// Create a document.
 	doc := dynaj.NewDocument()
@@ -241,7 +241,7 @@ func TestDeleteElementAt(t *testing.T) {
 	Assert(t, ErrorContains(err, "invalid path"), "invalid path")
 }
 
-// TestParseError tests the returned error in case of
+// TestParseError verifies the returned error in case of
 // an invalid document.
 func TestParseError(t *testing.T) {
 	bs := []byte(`abc{def`)
@@ -251,7 +251,7 @@ func TestParseError(t *testing.T) {
 	Assert(t, ErrorContains(err, "cannot unmarshal document"), "invalid document")
 }
 
-// TestClear tests to clear a document.
+// TestClear verifies to clear a document.
 func TestClear(t *testing.T) {
 	bs, _ := createDocument(t)
 
@@ -264,7 +264,7 @@ func TestClear(t *testing.T) {
 	Assert(t, Equal(foo, "foo"), "value / retrieved")
 }
 
-// TestLength tests retrieving values as strings.
+// TestLength verifies retrieving values as strings.
 func TestLength(t *testing.T) {
 	bs, _ := createDocument(t)
 
@@ -273,7 +273,7 @@ func TestLength(t *testing.T) {
 	l := doc.Length("X")
 	Assert(t, Equal(l, -1), "length of undefined X")
 	l = doc.Length("")
-	Assert(t, Equal(l, 4), "length of root")
+	Assert(t, Equal(l, 6), "length of root")
 	l = doc.Length("B")
 	Assert(t, Equal(l, 3), "length of B")
 	l = doc.Length("B/2")
@@ -286,7 +286,7 @@ func TestLength(t *testing.T) {
 	Assert(t, Equal(l, 1), "length of /B/1/S/0")
 }
 
-// TestNotFound tests the handling of not found values.
+// TestNotFound verifies the handling of not found values.
 func TestNotFound(t *testing.T) {
 	bs, _ := createDocument(t)
 
@@ -310,7 +310,7 @@ func TestString(t *testing.T) {
 	Assert(t, Equal(s, string(bs)), "document stringified correctly")
 }
 
-// TestAsString tests retrieving values as strings.
+// TestAsString verifies retrieving values as strings.
 func TestAsString(t *testing.T) {
 	bs, _ := createDocument(t)
 
@@ -338,7 +338,7 @@ func TestAsString(t *testing.T) {
 	Assert(t, Equal(sv, "null"), "value Z/Z/Z retrieved")
 }
 
-// TestAsInt tests retrieving values as ints.
+// TestAsInt verifies retrieving values as ints.
 func TestAsInt(t *testing.T) {
 	bs, _ := createDocument(t)
 
@@ -358,7 +358,7 @@ func TestAsInt(t *testing.T) {
 	Assert(t, Equal(iv, -1), "value Z/Z/Z retrieved")
 }
 
-// TestAsFloat64 tests retrieving values as float64.
+// TestAsFloat64 verifies retrieving values as float64.
 func TestAsFloat64(t *testing.T) {
 	bs, _ := createDocument(t)
 
@@ -380,7 +380,7 @@ func TestAsFloat64(t *testing.T) {
 	Assert(t, Equal(fv, -1.0), "value Z/Z/Z retrieved")
 }
 
-// TestAsBool tests retrieving values as bool.
+// TestAsBool verifies retrieving values as bool.
 func TestAsBool(t *testing.T) {
 	bs, _ := createDocument(t)
 
@@ -400,7 +400,37 @@ func TestAsBool(t *testing.T) {
 	Assert(t, Equal(bv, false), "value Z/Z/Z retrieved")
 }
 
-// TestMarshalJSON tests building a JSON document again.
+// TestAsDuration verifies retrieving values as time.
+func TestAsTime(t *testing.T) {
+	bs, _ := createDocument(t)
+
+	doc, err := dynaj.Unmarshal(bs)
+	Assert(t, NoError(err), "document unmarshalled")
+	tv := doc.NodeAt("T1").AsTime(time.RFC3339Nano, time.Time{})
+	Assert(t, Equal(tv, time.Date(2018, time.April, 29, 20, 30, 0, 0, time.UTC)), "value T1 retrieved")
+	tv = doc.NodeAt("T2").AsTime(time.RFC3339Nano, time.Time{})
+	Assert(t, Equal(tv, time.Date(2018, time.April, 29, 20, 30, 0, 0, time.UTC)), "value T2 retrieved")
+
+	tv = doc.NodeAt("Z/Z/Z").AsTime(time.RFC3339Nano, time.Time{})
+	Assert(t, Equal(tv, time.Time{}), "value Z/Z/Z retrieved")
+}
+
+// TestAsDuration verifies retrieving values as duration.
+func TestAsDuration(t *testing.T) {
+	bs, _ := createDocument(t)
+
+	doc, err := dynaj.Unmarshal(bs)
+	Assert(t, NoError(err), "document unmarshalled")
+	dv := doc.NodeAt("D1").AsDuration(time.Minute)
+	Assert(t, Equal(dv, 5*time.Second), "value D1 retrieved")
+	dv = doc.NodeAt("D2").AsDuration(time.Minute)
+	Assert(t, Equal(dv, 5*time.Second), "value D1 retrieved")
+
+	dv = doc.NodeAt("Z/Z/Z").AsDuration(time.Second)
+	Assert(t, Equal(dv, time.Second), "value Z/Z/Z retrieved")
+}
+
+// TestMarshalJSON verifies building a JSON document again.
 func TestMarshalJSON(t *testing.T) {
 	// Compare input and output.
 	bsIn, _ := createDocument(t)
@@ -440,10 +470,12 @@ type levelTwo struct {
 }
 
 type levelOne struct {
-	A string
-	B []*levelTwo
-	D time.Duration
-	T time.Time
+	A  string
+	B  []*levelTwo
+	D1 time.Duration
+	D2 string
+	T1 time.Time
+	T2 string
 }
 
 func createDocument(t *testing.T) ([]byte, *levelOne) {
@@ -490,8 +522,10 @@ func createDocument(t *testing.T) ([]byte, *levelOne) {
 				},
 			},
 		},
-		D: 5 * time.Second,
-		T: time.Date(2018, time.April, 29, 20, 30, 0, 0, time.UTC),
+		D1: 5 * time.Second,
+		D2: "5s",
+		T1: time.Date(2018, time.April, 29, 20, 30, 0, 0, time.UTC),
+		T2: "2018-04-29T20:30:00Z",
 	}
 	bs, err := json.Marshal(lo)
 	Assert(t, NoError(err), "document marshalled")
@@ -534,8 +568,10 @@ func createCompareDocument(t *testing.T) []byte {
 				},
 			},
 		},
-		D: 10 * time.Second,
-		T: time.Date(2018, time.April, 29, 20, 59, 0, 0, time.UTC),
+		D1: 10 * time.Second,
+		D2: "10s",
+		T1: time.Date(2018, time.April, 29, 20, 59, 0, 0, time.UTC),
+		T2: "2018-04-29T20:59:00Z",
 	}
 	bs, err := json.Marshal(lo)
 	Assert(t, NoError(err), "document marshalled")

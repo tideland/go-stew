@@ -41,7 +41,7 @@ func TestProcess(t *testing.T) {
 	// Verify iteration of all nodes.
 	err = doc.Root().Process(processor)
 	Assert(t, NoError(err), "document processed")
-	Assert(t, Length(values, 27), "document processed all nodes")
+	Assert(t, Length(values, 29), "document processed all nodes")
 	Assert(t, Contains(values, `"/A" = "Level One"`), "document processed all nodes")
 	Assert(t, Contains(values, `"/B/0/D/A" = "Level Three - 0"`), "document processed all nodes")
 	Assert(t, Contains(values, `"/B/0/D/B" = "10.1"`), "document processed all nodes")
@@ -159,7 +159,7 @@ func TestRootQuery(t *testing.T) {
 	Assert(t, Length(nodes, 0), "document queried invalid nodes")
 	nodes, err = doc.Root().Query("*")
 	Assert(t, NoError(err), "document queried")
-	Assert(t, Length(nodes, 27), "document queried all nodes")
+	Assert(t, Length(nodes, 29), "document queried all nodes")
 	nodes, err = doc.Root().Query("/A")
 	Assert(t, NoError(err), "document queried")
 	Assert(t, Length(nodes, 1), "document queried node /A")
