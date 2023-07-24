@@ -111,8 +111,8 @@ func (d *Document) NodeAt(path Path) *Node {
 	return node
 }
 
-// Exist checks if the addressed value exists.
-func (d *Document) Exist(path Path) bool {
+// Exists checks if the addressed value exists.
+func (d *Document) Exists(path Path) bool {
 	_, err := elementAt(d.root, splitPath(path))
 	return err == nil
 }

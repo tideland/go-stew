@@ -91,6 +91,13 @@ func TestBuilding(t *testing.T) {
 	nvt := doc.NodeAt("a/d/1/z").IsUndefined()
 	Assert(t, True(nvt), "value a/d/1/z retrieved, it's undefined")
 
+	e := doc.Exists("a/b/x")
+	Assert(t, True(e), "value a/b/x exists")
+	e = doc.Exists("a/b")
+	Assert(t, True(e), "value a/b exists")
+	e = doc.Exists("z/z/z")
+	Assert(t, False(e), "value z/z/z doesn't exist")
+
 	nodes, err := doc.Root().Query("*x")
 	Assert(t, NoError(err), "query for *x")
 	Assert(t, Length(nodes, 1), "one node found")
