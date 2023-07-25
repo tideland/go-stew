@@ -97,6 +97,12 @@ func (d *Document) DeleteElementAt(path Path) error {
 	return nil
 }
 
+// Exists checks if the addressed value exists.
+func (d *Document) Exists(path Path) bool {
+	_, err := elementAt(d.root, splitPath(path))
+	return err == nil
+}
+
 // NodeAt returns the addressed value.
 func (d *Document) NodeAt(path Path) *Node {
 	node := &Node{
@@ -111,12 +117,6 @@ func (d *Document) NodeAt(path Path) *Node {
 	return node
 }
 
-// Exists checks if the addressed value exists.
-func (d *Document) Exists(path Path) bool {
-	_, err := elementAt(d.root, splitPath(path))
-	return err == nil
-}
-
 // Root returns the root path value.
 func (d *Document) Root() *Node {
 	return &Node{
@@ -125,17 +125,48 @@ func (d *Document) Root() *Node {
 	}
 }
 
+// DocumentAt returns the node as new document.
+func (d *Document) DocumentAt(path Path) (*Document, error) {
+	node := d.NodeAt(path)
+	if node.err != nil {
+		return nil, node.err
+	}
+	return &Document{
+		root: node.element,
+	}, nil
+}
+
+// Clone returns a clone of the document.
+func (d *Document) Clone() (*Document, error) {
+	var raw []byte
+	raw, err := json.Marshal(d.root)
+	if err != nil {
+		return nil, fmt.Errorf("cannot clone document: %v", err)
+	}
+	dc := &Document{}
+	err = json.Unmarshal(raw, &dc.root)
+	if err != nil {
+		return nil, fmt.Errorf("cannot clone document: %v", err)
+	}
+	return dc, nil
+}
+
 // Clear removes the document data.
 func (d *Document) Clear() {
 	d.root = nil
 }
 
-// MarshalJSON implements json.Marshaler.
+// MarshalJSON returns the JSON encoding of the document.
 func (d *Document) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.root)
 }
 
-// String implements fmt.Stringer.
+// MarshalJSONIndent returns the indented JSON encoding of the document.
+func (d *Document) MarshalJSONIndent() ([]byte, error) {
+	return json.MarshalIndent(d.root, "", "  ")
+}
+
+// String returns the string representation of the document.
 func (d *Document) String() string {
 	data, err := json.Marshal(d.root)
 	if err != nil {
