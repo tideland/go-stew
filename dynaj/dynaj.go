@@ -8,31 +8,14 @@
 package dynaj // import "tideland.dev/go/stew/dynaj"
 
 //--------------------
-// IMPORTS
-//--------------------
-
-//--------------------
-// CONSTANTS
-//--------------------
-
-const (
-	// Separator is the default separator for paths.
-	Separator = "/"
-)
-
-//--------------------
 // TYPES
 //--------------------
 
-// Path represents a path in a JSON document. It is a string using
-// the Separator as separator between the keys and indices.
-type Path = string
+// ID represents a key or index in a JSON object or array.
+type ID = string
 
-// Key represents a key or string index in a JSON object.
-type Key = string
-
-// Keys represents a list of keys.
-type Keys = []Key
+// Path represents a list of IDs.
+type Path = []ID
 
 // Element represents a JSON element, i.e. a simple value, an object or an array.
 type Element = any

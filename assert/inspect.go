@@ -122,7 +122,7 @@ func inspectError(obtained any) (error, error) {
 		}
 		return v.Err(), nil
 	default:
-		return nil, fmt.Errorf("no error or errable: %T", valueDescription(obtained))
+		return nil, fmt.Errorf("no error or errable: %v", valueDescription(obtained))
 	}
 }
 

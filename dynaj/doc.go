@@ -14,8 +14,8 @@
 //	if err != nil {
 //	    ...
 //	}
-//	name := doc.ValueAt("/name").AsString("")
-//	street := doc.ValueAt("/address/street").AsString("unknown")
+//	name, err := doc.At("name").AsString()
+//	street, err := doc.At("address", "street").AsString()
 //
 // Another way is to create an empty document with
 //
@@ -23,21 +23,16 @@
 //
 // Here as well as in parsed documents values can be set with
 //
-//	err := doc.SetValueAt("/a/b/3/c", 4711)
+//	err := doc.At("a", "b", "3").Set(4711)
 //
 // Additionally values of the document can be processed recursively
 // using
 //
-//	err := doc.Root().Process(func(node *dynaj.Node) error {
+//	err := doc.Root().Processor().DeepDo(func(acc *dynaj.Accessor) error {
 //	    ...
 //	})
 //
-// or from deeper nodes with doc.ValueAt("/a/b/3").Process(...).
-// Additionally flat processing is possible with
-//
-//	err := doc.ValueAt("/x/y/z").Range(func(node *dynaj.Node) error {
-//	    ...
-//	})
+// or from deeper nodes with doc.At("a", "b").Processor().Do(...).
 //
 // To retrieve the differences between two documents the function
 // dynaj.Compare() can be used:

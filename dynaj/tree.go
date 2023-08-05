@@ -13,206 +13,147 @@ package dynaj // import "tideland.dev/go/stew/dynaj"
 
 import (
 	"fmt"
+	"strconv"
+	"time"
 )
 
 //--------------------
 // TREE FUNCTIONS
 //--------------------
 
-// insertValue recursively inserts a value at the end of the keys list.
-func insertValue(element Element, keys Keys, value Value) (Element, error) {
-	if len(keys) == 0 {
-		return value, nil
+// last retrieves the last ID from a Path.
+func last(path Path) ID {
+	if len(path) == 0 {
+		return ""
 	}
+	return path[len(path)-1]
+}
 
-	switch tnode := element.(type) {
-	case nil:
-		return createValue(keys, value)
-	case Object:
-		return insertValueInObject(tnode, keys, value)
-	case Array:
-		return insertValueInArray(tnode, keys, value)
+// headTail retrieves the head and the tail from a Path.
+func headTail(path Path) (ID, Path) {
+	switch len(path) {
+	case 0:
+		return "", Path{}
+	case 1:
+		return path[0], Path{}
 	default:
-		return nil, fmt.Errorf("document is not a valid JSON structure")
+		return path[0], path[1:]
 	}
 }
 
-// createValue creates a value at the end of the keys list.
-func createValue(keys Keys, value Value) (Element, error) {
-	// Check if we are at the end of the keys list.
-	if len(keys) == 0 {
-		return value, nil
-	}
-	h, t := headTail(keys)
-	// Check for array index first.
-	index, ok := asIndex(h)
-	if ok {
-		// It's an array index.
-		arr := make(Array, index+1)
-		element, err := createValue(t, value)
-		if err != nil {
-			return nil, err
-		}
-		arr[index] = element
-		return arr, nil
-	}
-	// It's an object key.
-	obj := Object{h: nil}
-	element, err := createValue(t, value)
-	if err != nil {
-		return nil, err
-	}
-	obj[h] = element
-	return obj, nil
-}
-
-// insertValueInObject inserts a value in a JSON object at the end of the keys list.
-func insertValueInObject(obj Object, keys Keys, value Value) (Element, error) {
-	h, t := headTail(keys)
-	// Create object if keys list has only one element.
-	if len(t) == 0 {
-		if isObjectOrArray(obj[h]) {
-			return nil, fmt.Errorf("cannot insert value at %v: would corrupt document", keys)
-		}
-		_, ok := asIndex(h)
-		if ok {
-			return nil, fmt.Errorf("cannot insert value at %v: index %q in object", keys, h)
-		}
-		obj[h] = value
-		return obj, nil
-	}
-	// Insert value in element.
-	element := obj[h]
-	if isValue(element) {
-		return nil, fmt.Errorf("cannot insert value at %v: would corrupt document", keys)
-	}
-	newElement, err := insertValue(element, t, value)
-	if err != nil {
-		return nil, err
-	}
-
-	obj[h] = newElement
-	return obj, nil
-}
-
-// insertValueInArray inserts a value in an array at a given path.
-func insertValueInArray(arr Array, keys Keys, value Value) (Element, error) {
-	h, t := headTail(keys)
-	// Convert path head into index.
-	index, ok := asIndex(h)
-	switch {
-	case !ok:
-		return nil, fmt.Errorf("cannot insert value at %v: invalid index %q", keys, index)
-	case index < 0:
-		return nil, fmt.Errorf("cannot insert value at %v: negative index %d", keys, index)
-	case index >= len(arr):
-		tmp := make(Array, index+1)
-		copy(tmp, arr)
-		arr = tmp
-	}
-	// Insert value if last element in path.
-	if len(t) == 0 {
-		if isObjectOrArray(arr[index]) {
-			return nil, fmt.Errorf("cannot insert value at %v: would corrupt document", keys)
-		}
-		arr[index] = value
-		return arr, nil
-	}
-	// Insert value in element.
-	element := arr[index]
-	if isValue(element) {
-		return nil, fmt.Errorf("cannot insert value at %v: would corrupt document", keys)
-	}
-	newElement, err := insertValue(element, t, value)
-	if err != nil {
-		return nil, err
-	}
-
-	arr[index] = newElement
-	return arr, nil
-}
-
-// deleteElement recursively deletes a element at the end of the keys list.
-func deleteElement(element Element, keys Keys, deep bool) (Element, error) {
-	if len(keys) == 0 {
-		return nil, nil
-	}
-
-	switch tnode := element.(type) {
-	case nil:
-		return nil, fmt.Errorf("cannot delete value at %v: invalid path", keys)
-	case Object:
-		return deleteElementInObject(tnode, keys, deep)
-	case Array:
-		return deleteElementInArray(tnode, keys, deep)
+// initLast retrieves the initials and the last from a Path.
+func initLast(path Path) (Path, ID) {
+	switch len(path) {
+	case 0:
+		return Path{}, ""
+	case 1:
+		return Path{}, path[0]
 	default:
-		return nil, fmt.Errorf("cannot delete value at %v: path too long", keys)
+		return path[:len(path)-1], path[len(path)-1]
 	}
 }
 
-// deleteElementInObject deletes a value in a JSON object at the end of the keys list.
-func deleteElementInObject(obj Object, keys Keys, deep bool) (Element, error) {
-	h, t := headTail(keys)
-	// Delete object if keys list has only one element.
-	if len(t) == 0 {
-		if deep {
-			// Delete all.
-			delete(obj, h)
-			return obj, nil
-		}
-		// Not deep, so delete only if value.
-		if isObjectOrArray(obj[h]) {
-			return nil, fmt.Errorf("cannot delete value at %v: is no value", keys)
-		}
-		delete(obj, h)
-		return obj, nil
-	}
-	// Delete element.
-	element := obj[h]
-	newElement, err := deleteElement(element, t, deep)
+// asIndex converts the given key into an index.
+func asIndex(id ID) (int, bool) {
+	index, err := strconv.Atoi(id)
 	if err != nil {
-		return nil, err
+		return -1, false
 	}
-	obj[h] = newElement
-	return obj, nil
+	return index, true
 }
 
-// deleteElementInArray deletes a value in a JSON array at a given path.
-func deleteElementInArray(arr Array, keys Keys, deep bool) (Element, error) {
-	h, t := headTail(keys)
-	// Convert head in index.
-	index, ok := asIndex(h)
-	switch {
-	case !ok:
-		return nil, fmt.Errorf("cannot delete value at %v: invalid index %q", keys, h)
-	case index < 0:
-		return nil, fmt.Errorf("cannot delete value at %v: negative index %d", keys, index)
-	case index >= len(arr):
-		return nil, fmt.Errorf("cannot delete value at %v: index %d out of range", keys, index)
+// elementAt returns the element at the given path recursively
+// starting at the given start element.
+func elementAt(start Element, stack, path Path) (Element, error) {
+	if len(path) == 0 {
+		// End of the path.
+		return start, nil
 	}
-	// Delete object if keys list has only one element.
-	if len(t) == 0 {
-		if deep {
-			// Delete all.
-			copy(arr[index:], arr[index+1:])
-			arr = arr[:len(arr)-1]
+	// Further access depends on part content and type.
+	h, t := headTail(path)
+	current := append(stack, h)
+	if h == "" {
+		return start, nil
+	}
+	switch typed := start.(type) {
+	case Object:
+		// JSON object.
+		field, ok := typed[h]
+		if !ok {
+			return nil, fmt.Errorf("invalid path %v", current)
 		}
-		// Not deep, so delete only if value.
-		if isObjectOrArray(arr[index]) {
-			return nil, fmt.Errorf("cannot delete value at %v: is no value", keys)
+		return elementAt(field, current, t)
+	case Array:
+		// JSON array.
+		index, ok := asIndex(h)
+		if !ok {
+			return nil, fmt.Errorf("invalid path %v: no index", current)
 		}
-		copy(arr[index:], arr[index+1:])
-		arr = arr[:len(arr)-1]
-		return arr, nil
+		if index < 0 || index >= len(typed) {
+			return nil, fmt.Errorf("invalid path %v: index out of range", current)
+		}
+		return elementAt(typed[index], current, t)
 	}
-	// Delete value in element.
-	element := arr[index]
-	newElement, err := deleteElement(element, t, deep)
-	if err != nil {
-		return nil, err
+	// Path is longer than existing node structure.
+	return nil, fmt.Errorf("key or index not found")
+}
+
+// replaceAt replaces the element at the end of the given path with the
+// given value.
+func replaceAt(start Element, stack, path Path, value Element) error {
+	if len(path) == 0 {
+		// End of the path.
+		return nil
 	}
-	arr[index] = newElement
-	return arr, nil
+	// Further access depends on part content and type.
+	h, t := headTail(path)
+	if h == "" {
+		return nil
+	}
+	current := append(stack, h)
+	switch typed := start.(type) {
+	case Object:
+		// JSON object.
+		field, ok := typed[h]
+		if !ok {
+			return fmt.Errorf("invalid path %v", current)
+		}
+		if len(t) > 0 {
+			return replaceAt(field, current, t, value)
+		}
+		typed[h] = value
+		return nil
+	case Array:
+		// JSON array.
+		index, ok := asIndex(h)
+		if !ok {
+			return fmt.Errorf("invalid path %v: no index", current)
+		}
+		if index < 0 || index >= len(typed) {
+			return fmt.Errorf("invalid path %v: index out of range", current)
+		}
+		if len(t) > 0 {
+			return replaceAt(typed[index], current, t, value)
+		}
+		typed[index] = value
+		return nil
+	}
+	// Path is longer than existing node structure.
+	return fmt.Errorf("key or index not found")
+}
+
+// isValidElement checks if the element is valid. These are strings, ints, floats,
+// bools, time.Time, time.Duration, and empty Array and Object.
+func isValidElement(element Element) bool {
+	switch typed := element.(type) {
+	case string, int, float64, bool, time.Time, time.Duration:
+		return true
+	case Array:
+		return len(typed) == 0
+	case Object:
+		return len(typed) == 0
+	}
+	return false
 }
 
 // EOF
