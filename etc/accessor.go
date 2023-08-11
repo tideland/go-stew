@@ -31,8 +31,8 @@ type Accessor struct {
 	acc  *dynaj.Accessor
 }
 
-// newValues creates a new value.
-func newValue(etc *Etc, path Path) *Accessor {
+// newAccessor creates a new Accessor for a value.
+func newAccessor(etc *Etc, path Path) *Accessor {
 	acc := &Accessor{
 		etc:  etc,
 		path: path,
@@ -41,7 +41,17 @@ func newValue(etc *Etc, path Path) *Accessor {
 	return acc
 }
 
-// AsString returns the value as string. In case of an error
+// Path returns the path of the accessor.
+func (acc *Accessor) Path() Path {
+	return acc.acc.Path()
+}
+
+// ID returns the ID of the Accessor.
+func (acc *Accessor) ID() string {
+	return acc.acc.ID()
+}
+
+// AsString returns the value of the Accessor as string. In case of an error
 // of the accessor the default value is returned.
 func (acc *Accessor) AsString(def string) string {
 	acc.checkMacro(def)
@@ -52,7 +62,7 @@ func (acc *Accessor) AsString(def string) string {
 	return s
 }
 
-// AsInt returns the value as int. In case of an error
+// AsInt returns the value of the Accessor as int. In case of an error
 // of the accessor the default value is returned.
 func (acc *Accessor) AsInt(def int) int {
 	acc.checkMacro(def)
@@ -63,7 +73,17 @@ func (acc *Accessor) AsInt(def int) int {
 	return i
 }
 
-// AsFloat64 returns the value as float. In case of an error
+// Err returns the error of the Accessor.
+func (acc *Accessor) Err() error {
+	return acc.acc.Err()
+}
+
+// Len returns the length of the value of the Accessor.
+func (acc *Accessor) Len() int {
+	return acc.acc.Len()
+}
+
+// AsFloat64 returns the value of the Accessor as float. In case of an error
 // of the accessor the default value is returned.
 func (acc *Accessor) AsFloat64(def float64) float64 {
 	acc.checkMacro(def)
@@ -74,7 +94,7 @@ func (acc *Accessor) AsFloat64(def float64) float64 {
 	return f
 }
 
-// AsBool returns the value as bool. In case of an error
+// AsBool returns the value of the Accessor as bool. In case of an error
 // of the accessor the default value is returned.
 func (acc *Accessor) AsBool(def bool) bool {
 	acc.checkMacro(def)
@@ -85,7 +105,7 @@ func (acc *Accessor) AsBool(def bool) bool {
 	return b
 }
 
-// AsTime returns the value as time using the given layout. In case
+// AsTime returns the value of the Accessor as time using the given layout. In case
 // of an empty string time.RFC3339 will be taken. An error during reading
 // or parsing will return the default value.
 func (acc *Accessor) AsTime(layout string, def time.Time) time.Time {
@@ -100,7 +120,7 @@ func (acc *Accessor) AsTime(layout string, def time.Time) time.Time {
 	return t
 }
 
-// AsDuration returns the value as duration. In case of an error
+// AsDuration returns the value of the Accessor as duration. In case of an error
 // of the accessor the default value is returned.
 func (acc *Accessor) AsDuration(def time.Duration) time.Duration {
 	acc.checkMacro(def)
@@ -111,7 +131,40 @@ func (acc *Accessor) AsDuration(def time.Duration) time.Duration {
 	return d
 }
 
-// checkMacro checks if a macro is inside the value
+// Update updates the configuration value.
+func (acc *Accessor) Update(value Value) *Accessor {
+	acc.acc.Update(value)
+	return newAccessor(acc.etc, acc.path)
+}
+
+// Set sets a value at a given key in kase of an object or
+// in case of an Array if the key contains an integer
+// in range of the array.
+func (acc *Accessor) Set(key string, value Value) *Accessor {
+	acc.acc.Set(key, value)
+	return newAccessor(acc.etc, acc.path)
+}
+
+// Append appends a value to a configuration array.
+func (acc *Accessor) Append(value Value) *Accessor {
+	acc.acc.Append(value)
+	return newAccessor(acc.etc, acc.path)
+}
+
+// Delete deletes a value at a given key in kase of an object or
+// in case of an Array if the key contains an integer
+// in range of the array.
+func (acc *Accessor) Delete() *Accessor {
+	newAcc := acc.acc.Delete()
+	return newAccessor(acc.etc, newAcc.Path())
+}
+
+// At returns a new Accessor for a sub value.
+func (acc *Accessor) At(path ...ID) *Accessor {
+	return newAccessor(acc.etc, append(acc.path, path...))
+}
+
+// checkMacro checks if a macro is inside the value of the Accessor
 // and replaces it.
 func (acc *Accessor) checkMacro(def any) {
 	s, err := acc.acc.AsString()

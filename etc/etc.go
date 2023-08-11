@@ -89,7 +89,7 @@ func ReadFile(filename string) (*Etc, error) {
 func (e *Etc) At(path ...ID) *Accessor {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
-	return newValue(e, path)
+	return newAccessor(e, path)
 }
 
 // Write writes the configuration as indented JSON to the passed writer. All
