@@ -1,11 +1,11 @@
-// Tideland Go Stew - Assert - Unit Tests
+// Tideland Go Stew - QA One-Liners - Unit Tests
 //
-// Copyright (C) 2023 Frank Mueller / Tideland / Oldenburg / Germany
+// Copyright (C) 2012-2023 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package assert_test
+package qaone_test
 
 //------------------------------
 // IMPORTS
@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	. "tideland.dev/go/stew/assert"
+	. "tideland.dev/go/stew/qaone"
 )
 
 //------------------------------

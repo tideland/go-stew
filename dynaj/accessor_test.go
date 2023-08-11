@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	. "tideland.dev/go/stew/assert"
+	. "tideland.dev/go/stew/qaone"
 
 	"tideland.dev/go/stew/dynaj"
 )
@@ -66,9 +66,9 @@ func TestAccessAsString(t *testing.T) {
 	Assert(t, ErrorContains(err, `invalid path [not]`), "accessor must return error")
 	Assert(t, Equal(s, ""), "accessor must return no value")
 
-	isErr := doc.At("not", "existing").IsError()
-	Assert(t, True(isErr), "accessor must return error states")
 	acc := doc.At("not", "existing")
+	Assert(t, Equal(acc.Type(), dynaj.TypeError), "accessor must return error")
+	acc = doc.At("not", "existing")
 	Assert(t, ErrorContains(acc, `invalid path [not]`), "accessor must return error")
 }
 
@@ -241,7 +241,7 @@ func TestAccessUpdate(t *testing.T) {
 
 	// Positive tests.
 	acc := doc.At("string").Update("new value")
-	Assert(t, False(acc.IsError()), "accessor must be created and used w/o error")
+	Assert(t, NoError(acc), "accessor must be created and used w/o error")
 	Assert(t, NotNil(acc), "accessor must be returned")
 	s, err := acc.AsString()
 	Assert(t, NoError(err), "value must be returned w/o error")
@@ -251,7 +251,7 @@ func TestAccessUpdate(t *testing.T) {
 	Assert(t, Equal(s, "new value"), "accessor must return right string")
 
 	acc = doc.At("nested", "0", "a").Update(4711)
-	Assert(t, False(acc.IsError()), "accessor must be created and used w/o error")
+	Assert(t, NoError(acc), "accessor must be created and used w/o error")
 	Assert(t, NotNil(acc), "accessor must be returned")
 	i, err := acc.AsInt()
 	Assert(t, NoError(err), "value must be returned w/o error")
@@ -261,7 +261,7 @@ func TestAccessUpdate(t *testing.T) {
 	Assert(t, Equal(i, 4711), "accessor must return right int")
 
 	acc = doc.At("nested", "1", "d", "2").Update("yadda")
-	Assert(t, False(acc.IsError()), "accessor must be created and used w/o error")
+	Assert(t, NoError(acc), "accessor must be created and used w/o error")
 	Assert(t, NotNil(acc), "accessor must be returned")
 	s, err = acc.AsString()
 	Assert(t, NoError(err), "value must be returned w/o error")
@@ -271,7 +271,7 @@ func TestAccessUpdate(t *testing.T) {
 	Assert(t, Equal(s, "yadda"), "accessor must return right string")
 
 	acc = doc.At("string").Update(dynaj.Array{})
-	Assert(t, False(acc.IsError()), "accessor must be created and used w/o error")
+	Assert(t, NoError(acc), "accessor must be created and used w/o error")
 	Assert(t, NotNil(acc), "accessor must be returned")
 
 	// Negative tests.
@@ -283,7 +283,7 @@ func TestAccessUpdate(t *testing.T) {
 
 	// Final positive test.
 	acc = doc.Root().Update("1-2-3")
-	Assert(t, False(acc.IsError()), "accessor must be created and used w/o error")
+	Assert(t, NoError(acc), "accessor must be created and used w/o error")
 	Assert(t, Length(doc.Root(), 1), "document must have length 1")
 	acc = doc.Root()
 	s, err = acc.AsString()
@@ -297,7 +297,7 @@ func TestAccessSet(t *testing.T) {
 
 	// Positive tests.
 	acc := doc.Root().Set("new", "value")
-	Assert(t, False(acc.IsError()), "accessor must be created and used w/o error")
+	Assert(t, NoError(acc), "accessor must be created and used w/o error")
 	s, err := acc.AsString()
 	Assert(t, NoError(err), "value must be returned w/o error")
 	Assert(t, Equal(s, "value"), "accessor must return right string")
@@ -306,7 +306,7 @@ func TestAccessSet(t *testing.T) {
 	Assert(t, Equal(s, "value"), "accessor must return right string")
 
 	acc = doc.At("nested", "0", "d").Set("0", 4711)
-	Assert(t, False(acc.IsError()), "accessor must be created and used w/o error")
+	Assert(t, NoError(acc), "accessor must be created and used w/o error")
 	i, err := acc.AsInt()
 	Assert(t, NoError(err), "value must be returned w/o error")
 	Assert(t, Equal(i, 4711), "accessor must return right int")
@@ -323,13 +323,13 @@ func TestAccessSet(t *testing.T) {
 
 	// Complex positive scenario.
 	acc = doc.At("object").Set("nested", dynaj.Object{})
-	Assert(t, False(acc.IsError()), "accessor must be created and used w/o error")
+	Assert(t, NoError(acc), "accessor must be created and used w/o error")
 	sub := doc.At("object", "nested").Set("foo", 1)
-	Assert(t, False(sub.IsError()), "accessor must be created and used w/o error")
+	Assert(t, NoError(sub), "accessor must be created and used w/o error")
 	sub = doc.At("object", "nested").Set("bar", 2)
-	Assert(t, False(sub.IsError()), "accessor must be created and used w/o error")
+	Assert(t, NoError(sub), "accessor must be created and used w/o error")
 	sub = doc.At("object", "nested").Set("baz", 3)
-	Assert(t, False(sub.IsError()), "accessor must be created and used w/o error")
+	Assert(t, NoError(sub), "accessor must be created and used w/o error")
 	Assert(t, Length(doc.At("object", "nested"), 3), "document must have length 3")
 }
 
@@ -339,7 +339,7 @@ func TestAccessAppend(t *testing.T) {
 
 	// Positive tests.
 	acc := doc.At("array").Append("new value")
-	Assert(t, False(acc.IsError()), "accessor must be created and used w/o error")
+	Assert(t, NoError(acc), "accessor must be created and used w/o error")
 	Assert(t, Length(doc.At("array"), 4), "document must have length 4")
 	s, err := doc.At("array", "3").AsString()
 	Assert(t, NoError(err), "value must be returned w/o error")
@@ -359,23 +359,23 @@ func TestAccessDelete(t *testing.T) {
 
 	// Positive tests.
 	acc := doc.At("string").Delete()
-	Assert(t, False(acc.IsError()), "accessor must be created and used w/o error")
+	Assert(t, NoError(acc), "accessor must be created and used w/o error")
 	Assert(t, Length(doc.Root(), 11), "document must have length 11")
 	acc = doc.At("string")
 	Assert(t, ErrorContains(acc, `invalid path [string]`), "accessor must return error")
 
 	acc = doc.At("array", "0").Delete()
-	Assert(t, False(acc.IsError()), "accessor must be created and used w/o error")
+	Assert(t, NoError(acc), "accessor must be created and used w/o error")
 	Assert(t, Length(doc.At("array"), 2), "document at location must have length 2")
 
 	acc = doc.At("nested", "0", "d").Delete()
-	Assert(t, False(acc.IsError()), "accessor must be created and used w/o error")
+	Assert(t, NoError(acc), "accessor must be created and used w/o error")
 	Assert(t, Length(doc.At("nested", "0"), 3), "document at location must have length 3")
 	acc = doc.At("nested", "0", "d")
 	Assert(t, ErrorContains(acc, `invalid path [nested 0 d]`), "accessor must return error")
 
 	acc = doc.At("nested", "1").Delete()
-	Assert(t, False(acc.IsError()), "accessor must be created and used w/o error")
+	Assert(t, NoError(acc), "accessor must be created and used w/o error")
 	Assert(t, Length(doc.At("nested"), 1), "document at location must have length 1")
 
 	// Negative tests.

@@ -1,11 +1,11 @@
-// Tideland Go Audit - Generators
+// Tideland Go Stew - QA Generators
 //
 // Copyright (C) 2013-2023 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package generators // import "tideland.dev/go/stew/generators"
+package qagen // import "tideland.dev/go/stew/qagen"
 
 //--------------------
 // IMPORTS

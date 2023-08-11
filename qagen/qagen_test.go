@@ -1,11 +1,11 @@
-// Tideland Go Audit - Generators - Unit Tests
+// Tideland Go Stew - QA Generators - Unit Tests
 //
 // Copyright (C) 2013-2023 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the New BSD license.
 
-package generators_test
+package qagen_test
 
 //--------------------
 // IMPORTS
@@ -16,9 +16,9 @@ import (
 	"testing"
 	"time"
 
-	. "tideland.dev/go/stew/assert"
+	. "tideland.dev/go/stew/qaone"
 
-	"tideland.dev/go/stew/generators"
+	"tideland.dev/go/stew/qagen"
 )
 
 //--------------------
@@ -46,17 +46,17 @@ func TestBuildDate(t *testing.T) {
 	}
 
 	for _, layout := range layouts {
-		ts, tim := generators.BuildTime(layout, 0)
+		ts, tim := qagen.BuildTime(layout, 0)
 		tsp, err := time.Parse(layout, ts)
 		Assert(t, NoError(err), "time parsed")
 		Assert(t, Equal(tim, tsp), "time equal")
 
-		ts, tim = generators.BuildTime(layout, -30*time.Minute)
+		ts, tim = qagen.BuildTime(layout, -30*time.Minute)
 		tsp, err = time.Parse(layout, ts)
 		Assert(t, NoError(err), "time parsed")
 		Assert(t, Equal(tim, tsp), "time equal")
 
-		ts, tim = generators.BuildTime(layout, time.Hour)
+		ts, tim = qagen.BuildTime(layout, time.Hour)
 		tsp, err = time.Parse(layout, ts)
 		Assert(t, NoError(err), "time parsed")
 		Assert(t, Equal(tim, tsp), "time equal")
@@ -65,7 +65,7 @@ func TestBuildDate(t *testing.T) {
 
 // TestBytes tests the generation of bytes.
 func TestBytes(t *testing.T) {
-	gen := generators.New(generators.FixedRand())
+	gen := qagen.New(qagen.FixedRand())
 
 	// Test individual bytes.
 	for i := 0; i < 10000; i++ {
@@ -94,7 +94,7 @@ func TestBytes(t *testing.T) {
 
 // TestInts tests the generation of ints.
 func TestInts(t *testing.T) {
-	gen := generators.New(generators.FixedRand())
+	gen := qagen.New(qagen.FixedRand())
 
 	// Test individual ints.
 	for i := 0; i < 10000; i++ {
@@ -136,7 +136,7 @@ func TestInts(t *testing.T) {
 
 // TestOneOf tests the generation of selections.
 func TestOneOf(t *testing.T) {
-	gen := generators.New(generators.FixedRand())
+	gen := qagen.New(qagen.FixedRand())
 	stuff := []any{1, true, "three", 47.11, []byte{'A', 'B', 'C'}}
 
 	for i := 0; i < 10000; i++ {
@@ -171,7 +171,7 @@ func TestOneOf(t *testing.T) {
 
 // TestWords tests the generation of words.
 func TestWords(t *testing.T) {
-	gen := generators.New(generators.FixedRand())
+	gen := qagen.New(qagen.FixedRand())
 
 	// Test single words.
 	for i := 0; i < 10000; i++ {
@@ -183,8 +183,8 @@ func TestWords(t *testing.T) {
 
 	// Test limited words.
 	for i := 0; i < 10000; i++ {
-		lo := gen.Int(generators.MinWordLen, generators.MaxWordLen)
-		hi := gen.Int(generators.MinWordLen, generators.MaxWordLen)
+		lo := gen.Int(qagen.MinWordLen, qagen.MaxWordLen)
+		hi := gen.Int(qagen.MinWordLen, qagen.MaxWordLen)
 		w := gen.LimitedWord(lo, hi)
 		wl := len(w)
 		if hi < lo {
@@ -196,7 +196,7 @@ func TestWords(t *testing.T) {
 
 // TestPattern tests the generation based on patterns.
 func TestPattern(t *testing.T) {
-	gen := generators.New(generators.FixedRand())
+	gen := qagen.New(qagen.FixedRand())
 	assertPattern := func(pattern, runes string) {
 		set := make(map[rune]bool)
 		for _, r := range runes {
@@ -229,7 +229,7 @@ func TestPattern(t *testing.T) {
 
 // TestText tests the generation of text.
 func TestText(t *testing.T) {
-	gen := generators.New(generators.FixedRand())
+	gen := qagen.New(qagen.FixedRand())
 	names := gen.Names(4)
 
 	for i := 0; i < 10000; i++ {
@@ -266,9 +266,9 @@ func TestText(t *testing.T) {
 
 // TestName tests the generation of names.
 func TestName(t *testing.T) {
-	gen := generators.New(generators.FixedRand())
+	gen := qagen.New(qagen.FixedRand())
 
-	Assert(t, Equal(generators.ToUpperFirst("yadda"), "Yadda"), "to upper first")
+	Assert(t, Equal(qagen.ToUpperFirst("yadda"), "Yadda"), "to upper first")
 
 	for i := 0; i < 10000; i++ {
 		first, middle, last := gen.Name()
@@ -302,7 +302,7 @@ func TestName(t *testing.T) {
 
 // TestDomain tests the generation of domains.
 func TestDomain(t *testing.T) {
-	gen := generators.New(generators.FixedRand())
+	gen := qagen.New(qagen.FixedRand())
 
 	for i := 0; i < 00100; i++ {
 		domain := gen.Domain()
@@ -313,7 +313,7 @@ func TestDomain(t *testing.T) {
 
 // TestURL tests the generation of URLs.
 func TestURL(t *testing.T) {
-	gen := generators.New(generators.FixedRand())
+	gen := qagen.New(qagen.FixedRand())
 
 	for i := 0; i < 10000; i++ {
 		url := gen.URL()
@@ -324,7 +324,7 @@ func TestURL(t *testing.T) {
 
 // TestEMail tests the generation of e-mail addresses.
 func TestEMail(t *testing.T) {
-	gen := generators.New(generators.FixedRand())
+	gen := qagen.New(qagen.FixedRand())
 
 	for i := 0; i < 10000; i++ {
 		addr := gen.EMail()
@@ -335,7 +335,7 @@ func TestEMail(t *testing.T) {
 
 // TestTimes tests the generation of durations and times.
 func TestTimes(t *testing.T) {
-	gen := generators.New(generators.FixedRand())
+	gen := qagen.New(qagen.FixedRand())
 
 	for i := 0; i < 10000; i++ {
 		// Test durations.
@@ -374,7 +374,7 @@ func TestTimes(t *testing.T) {
 // TestConcurrency simply produces a number of concurrent calls simply to let
 // the race detection do its work.
 func TestConcurrency(t *testing.T) {
-	gen := generators.New(generators.FixedRand())
+	gen := qagen.New(qagen.FixedRand())
 
 	run := func() {
 		go gen.Byte(0, 255)

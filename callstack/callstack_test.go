@@ -14,7 +14,7 @@ package callstack_test
 import (
 	"testing"
 
-	. "tideland.dev/go/stew/assert"
+	. "tideland.dev/go/stew/qaone"
 
 	"tideland.dev/go/stew/callstack"
 )

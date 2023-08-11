@@ -17,7 +17,7 @@ import (
 	"testing"
 	"time"
 
-	. "tideland.dev/go/stew/assert"
+	. "tideland.dev/go/stew/qaone"
 
 	"tideland.dev/go/stew/jwt"
 )

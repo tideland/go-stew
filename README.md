@@ -11,16 +11,17 @@
 **Tideland Go Stew** provides a good collection of useful Go packages, like a delicious stew. These are usefult for many purposes. It's a kind of toolbox for the daily work of Go developers.
 
 * `actor` supports easier synchronous and asynchronous concurrent programming based on the actor model
-* `assert` enebales convenient assertions in unit tests based on the standard `testing` package
 * `callstack` helps diving into the call stack and provides information about the current function
 * `capture` allows to capture the output on STDOUT and STDERR; useful for testing
 * `dynaj` helps to work with JSON documents without definition of structs first
-* `environments` lets you set environment variables or create temporary directories for tests
-* `generators` provides a generator for random data, typially used in tests
+* `etc` provides a simple configuration management based on JSON files
 * `jwt` implements the JSON Web Tokens
 * `loop` supports the management of channel selection loops in goroutines
 * `matcher` matches strings against patterns, like regular expressions, only simpler
 * `monitor` supports monitoring variables as well as the runtime of functions
+* `qaenv` lets you set environment variables or create temporary directories and files for tests
+* `qagen` provides a generator for random data, typially used in tests
+* `qaone` enebales convenient one-liner assertions in unit tests based on the standard `testing` package
 * `semver` implements the semantic versioning
 * `slices` provides a powerful set of functions for slices based on generics
 * `timex` provides a set of helpful functions for the work with times

@@ -1,11 +1,11 @@
-// Tideland Go Stew - Assert
+// Tideland Go Stew - QA One-Liners
 //
-// Copyright (C) 2023 Frank Mueller / Tideland / Oldenburg / Germany
+// Copyright (C) 2012-2023 Frank Mueller / Tideland / Oldenburg / Germany
 //
 // All rights reserved. Use of this source code is governed
 // by the new BSD license.
 
-package assert // import "tideland.dev/go/stew/assert"
+package qaone // import "tideland.dev/go/stew/qaone"
 
 //------------------------------
 // IMPORTS

@@ -15,7 +15,7 @@ import (
 	"bytes"
 	"testing"
 
-	. "tideland.dev/go/stew/assert"
+	. "tideland.dev/go/stew/qaone"
 
 	"tideland.dev/go/stew/dynaj"
 )
@@ -26,7 +26,7 @@ import (
 
 // TestDocumentFromJSON tests the creation of a document from JSON.
 func TestDocumentFromJSON(t *testing.T) {
-	doc, err := dynaj.Unmarshal(createRawDocument())
+	doc, err := dynaj.Unmarshal(createJSON())
 	Assert(t, NoError(err), "document must be unmarshalled w/o error")
 	Assert(t, NotNil(doc), "document must exist")
 
@@ -34,7 +34,7 @@ func TestDocumentFromJSON(t *testing.T) {
 	Assert(t, NoError(doc.At("object")), "object element must be accessible")
 	Assert(t, NoError(doc.At("nested", "1", "d")), "nested element must be accessible")
 
-	r := bytes.NewReader(createRawDocument())
+	r := bytes.NewReader(createJSON())
 	doc, err = dynaj.Read(r)
 	Assert(t, NoError(err), "document must be read w/o error")
 	Assert(t, NotNil(doc), "document must exist")
@@ -46,15 +46,15 @@ func TestDocumentFromJSON(t *testing.T) {
 
 // createDocument creates a simple JSON test document.
 func createDocument() *dynaj.Document {
-	doc, err := dynaj.Unmarshal([]byte(createRawDocument()))
+	doc, err := dynaj.Unmarshal([]byte(createJSON()))
 	if err != nil {
 		panic(err)
 	}
 	return doc
 }
 
-// createRawDocument creates a simple JSON test document as raw string.
-func createRawDocument() []byte {
+// createJSON creates a simple JSON test document as bytes.
+func createJSON() []byte {
 	return []byte(`{
 		"string": "value",
 		"int": 42,

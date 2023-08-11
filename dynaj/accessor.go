@@ -18,6 +18,26 @@ import (
 )
 
 //--------------------
+// CONSTANTS
+//--------------------
+
+// Type describes the Element type.
+type Type int
+
+const (
+	TypeError Type = iota
+	TypeInvalid
+	TypeArray
+	TypeObject
+	TypeString
+	TypeInt
+	TypeFloat64
+	TypeBool
+	TypeTime
+	TypeDuration
+)
+
+//--------------------
 // ACCESSOR
 //--------------------
 
@@ -57,9 +77,30 @@ func (acc *Accessor) ID() ID {
 	return last(acc.path)
 }
 
-// IsError returns true if the Accessor has an error.
-func (acc *Accessor) IsError() bool {
-	return acc.err != nil
+// Type returns the type of the element.
+func (acc *Accessor) Type() Type {
+	if acc.err != nil {
+		return TypeError
+	}
+	switch acc.element.(type) {
+	case Array:
+		return TypeArray
+	case Object:
+		return TypeObject
+	case string:
+		return TypeString
+	case int:
+		return TypeInt
+	case float64:
+		return TypeFloat64
+	case bool:
+		return TypeBool
+	case time.Time:
+		return TypeTime
+	case time.Duration:
+		return TypeDuration
+	}
+	return TypeInvalid
 }
 
 // Err returns a possible error of the Accessor.

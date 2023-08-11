@@ -15,9 +15,9 @@ import (
 	"testing"
 	"time"
 
-	. "tideland.dev/go/stew/assert"
+	"tideland.dev/go/stew/qagen"
+	. "tideland.dev/go/stew/qaone"
 
-	"tideland.dev/go/stew/generators"
 	"tideland.dev/go/stew/monitor"
 )
 
@@ -40,7 +40,7 @@ func TestSimpleMonitor(t *testing.T) {
 
 // TestStopWatch tests the stop watch.
 func TestStopWatch(t *testing.T) {
-	gen := generators.New(generators.FixedRand())
+	gen := qagen.New(qagen.FixedRand())
 	m := monitor.New()
 	defer m.Stop()
 
@@ -84,7 +84,7 @@ func TestStopWatch(t *testing.T) {
 
 // Test of the stay-set indicators  of the monitor.
 func TestStaySetIndicators(t *testing.T) {
-	gen := generators.New(generators.FixedRand())
+	gen := qagen.New(qagen.FixedRand())
 	m := monitor.New()
 	defer m.Stop()
 
@@ -135,7 +135,7 @@ func TestStaySetIndicators(t *testing.T) {
 
 // BenchmarkMonitor checks the performance of monitor.
 func BenchmarkMonitor(b *testing.B) {
-	gen := generators.New(generators.SimpleRand())
+	gen := qagen.New(qagen.SimpleRand())
 	m := monitor.New()
 	defer m.Stop()
 

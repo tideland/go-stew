@@ -15,9 +15,9 @@ import (
 	"runtime"
 	"testing"
 
-	. "tideland.dev/go/stew/assert"
+	"tideland.dev/go/stew/qagen"
+	. "tideland.dev/go/stew/qaone"
 
-	"tideland.dev/go/stew/generators"
 	"tideland.dev/go/stew/slices"
 )
 
@@ -154,7 +154,7 @@ func TestIsSorted(t *testing.T) {
 // TestLargeSort verifies the sorting of large slices with a parallel QuickSort.
 func TestLargeSort(t *testing.T) {
 	size := runtime.NumCPU()*2048 + 1
-	gen := generators.New(generators.FixedRand())
+	gen := qagen.New(qagen.FixedRand())
 	ivs := gen.Ints(0, 10000, size)
 
 	Assert(t, False(slices.IsSorted(ivs)), "unsorted slice")
@@ -248,7 +248,7 @@ func TestShuffle(t *testing.T) {
 
 // BenchmarkSort runs a performance test on standard sorting.
 func BenchmarkSort(b *testing.B) {
-	gen := generators.New(generators.FixedRand())
+	gen := qagen.New(qagen.FixedRand())
 	vs := gen.Ints(0, 1000, 10000)
 
 	slices.Sort(vs)
@@ -256,7 +256,7 @@ func BenchmarkSort(b *testing.B) {
 
 // BenchmarkSortWith runs a performance test on sorting with comparator.
 func BenchmarkSortWith(b *testing.B) {
-	gen := generators.New(generators.FixedRand())
+	gen := qagen.New(qagen.FixedRand())
 	vs := gen.Words(10000)
 	less := func(vs []string, i, j int) bool { return len(vs[i]) < len(vs[j]) }
 
@@ -265,7 +265,7 @@ func BenchmarkSortWith(b *testing.B) {
 
 // FuzzSort runs a fuzz test on the standard sorting.
 func FuzzSort(f *testing.F) {
-	gen := generators.New(generators.FixedRand())
+	gen := qagen.New(qagen.FixedRand())
 
 	f.Add(5)
 	f.Fuzz(func(t *testing.T, i int) {
