@@ -71,7 +71,7 @@ func TestWrite(t *testing.T) {
 	Assert(t, NotNil(cfgB), "configuration expected")
 
 	ts := cfgB.At("global", "hostAddress").AsString("services.example.com:8080")
-	Assert(t, Equal(ts, "localhost:8080"), "host address should be localhost:8080")
+	Assert(t, Equal(ts, "localhost:8040"), "host address should be localhost:8040")
 
 	ti := cfgB.At("global", "maxUsers").AsInt(0)
 	Assert(t, Equal(ti, 50), "max users should be 50")
@@ -135,6 +135,9 @@ func TestMacros(t *testing.T) {
 	// Resolving with set environment variable.
 	env := qaenv.NewEinvironment()
 	defer env.Restore()
+
+	err = env.Set("MYAPP_TITLE", "Fantastic Test Servicee")
+	Assert(t, NoError(err), "no error expected")
 
 	ts = cfg.At("global", "title").AsString("Test in Progress")
 	Assert(t, Equal(ts, "Fantastic Test Servicee"), "title should be Fantastic Test Servicee")
