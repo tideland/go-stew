@@ -133,7 +133,8 @@ func (acc *Accessor) AsDuration(def time.Duration) time.Duration {
 
 // Update updates the configuration value.
 func (acc *Accessor) Update(value Value) *Accessor {
-	acc.acc.Update(value)
+	acc.etc.data.At(acc.path...).Update(value)
+	acc.etc.orig.At(acc.path...).Update(value)
 	return newAccessor(acc.etc, acc.path)
 }
 
@@ -141,21 +142,24 @@ func (acc *Accessor) Update(value Value) *Accessor {
 // in case of an Array if the key contains an integer
 // in range of the array.
 func (acc *Accessor) Set(key string, value Value) *Accessor {
-	acc.acc.Set(key, value)
-	return newAccessor(acc.etc, acc.path)
+	acc.etc.data.At(acc.path...).Set(key, value)
+	newAcc := acc.etc.orig.At(acc.path...).Set(key, value)
+	return newAccessor(acc.etc, newAcc.Path())
 }
 
 // Append appends a value to a configuration array.
 func (acc *Accessor) Append(value Value) *Accessor {
-	acc.acc.Append(value)
-	return newAccessor(acc.etc, acc.path)
+	acc.etc.data.At(acc.path...).Append(value)
+	newAcc := acc.etc.orig.At(acc.path...).Append(value)
+	return newAccessor(acc.etc, newAcc.Path())
 }
 
 // Delete deletes a value at a given key in kase of an object or
 // in case of an Array if the key contains an integer
 // in range of the array.
 func (acc *Accessor) Delete() *Accessor {
-	newAcc := acc.acc.Delete()
+	acc.etc.data.At(acc.path...).Delete()
+	newAcc := acc.etc.orig.At(acc.path...).Delete()
 	return newAccessor(acc.etc, newAcc.Path())
 }
 
