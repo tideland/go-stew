@@ -395,14 +395,75 @@ func (acc *Accessor) At(path ...ID) *Accessor {
 	extendedPath := append(acc.path, path...)
 	elem, err := elementAt(acc.doc.root, Path{}, extendedPath)
 	if err != nil {
-		return newAccessor(acc.doc, extendedPath, nil, err)
+		return newError(acc, "cannot access element: %v", err)
 	}
 	return newAccessor(acc.doc, extendedPath, elem, nil)
 }
 
-// Processor returns a processor starting it's work at the Accessors location.
-func (acc *Accessor) Processor() *Processor {
-	return newProcessor(acc)
+// Do calls the given handler for the current Accessor.
+func (acc *Accessor) Do(handle Handler) *Accessor {
+	if acc.element == nil || acc.err != nil {
+		return acc
+	}
+	switch typed := acc.element.(type) {
+	case Array:
+		for i, elem := range typed {
+			path := append(acc.path, fmt.Sprintf("%d", i))
+			acc := newAccessor(acc.doc, path, elem, nil)
+			err := handle(acc)
+			if err != nil {
+				return newError(acc, "cannot loop array: %v", err)
+			}
+		}
+	case Object:
+		for id, elem := range typed {
+			path := append(acc.path, id)
+			acc := newAccessor(acc.doc, path, elem, nil)
+			err := handle(acc)
+			if err != nil {
+				return newError(acc, "cannot loop object: %v", err)
+			}
+		}
+	default:
+		err := handle(acc)
+		if err != nil {
+			return newError(acc, "cannot handle element: %v", err)
+		}
+	}
+	return acc
+}
+
+// DeepDo calls the given handler for the current Accessor and all
+// Accessors of the tree below.
+func (acc *Accessor) DeepDo(handle Handler) *Accessor {
+	if acc.element == nil || acc.err != nil {
+		return acc
+	}
+	diver := func(acc *Accessor) error {
+		switch typed := acc.element.(type) {
+		case Array:
+			for i, elem := range typed {
+				path := append(acc.path, fmt.Sprintf("%d", i))
+				acc := newAccessor(acc.doc, path, elem, nil)
+				if err := acc.DeepDo(handle).Err(); err != nil {
+					return err
+				}
+			}
+			return nil
+		case Object:
+			for id, elem := range typed {
+				path := append(acc.path, id)
+				acc := newAccessor(acc.doc, path, elem, nil)
+				if err := acc.DeepDo(handle).Err(); err != nil {
+					return err
+				}
+			}
+			return nil
+		default:
+			return handle(acc)
+		}
+	}
+	return acc.Do(diver)
 }
 
 // EOF

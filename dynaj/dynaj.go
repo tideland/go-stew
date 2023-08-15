@@ -29,4 +29,10 @@ type Object = map[string]any
 // Array represents a JSON array.
 type Array = []any
 
+// Handler defines the signature of function for processing
+// an Accessor via Do() or DeepDo(). It will be called for the
+// one value or for all values of an Array or Object. In case
+// of given Arrays or Objects a Handler can operate recursively.
+type Handler func(acc *Accessor) error
+
 // EOF

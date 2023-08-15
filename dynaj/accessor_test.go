@@ -12,6 +12,8 @@ package dynaj_test
 //--------------------
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -414,6 +416,78 @@ func TestAccessAt(t *testing.T) {
 	acc = doc.At("nested").At("2").At("z").At("99")
 	Assert(t, NotNil(acc), "accessor must be created")
 	Assert(t, ErrorContains(acc, `invalid path [nested 2]`), "accessor must return error")
+}
+
+// TestAccessDo verifies the looping on elements and
+// trees of a JSON document.
+func TestAccessDo(t *testing.T) {
+	doc := createDocument()
+
+	// Positive tests.
+	acc := doc.At("string")
+	acc.Do(func(acc *dynaj.Accessor) error {
+		s, err := acc.AsString()
+		if err != nil {
+			return err
+		}
+		return acc.Update(strings.ToUpper(s)).Err()
+	})
+	s, err := doc.At("string").AsString()
+	Assert(t, NoError(err), "no error expected")
+	Assert(t, Equal(s, "VALUE"), "string should be 'VALUE'")
+
+	acc = doc.At("array")
+	acc.Do(func(acc *dynaj.Accessor) error {
+		return acc.Update("new").Err()
+	})
+	s, err = doc.At("array", "0").AsString()
+	Assert(t, NoError(err), "no error expected")
+	Assert(t, Equal(s, "new"), "first element should be 'new'")
+
+	acc = doc.At("object")
+	acc.Do(func(acc *dynaj.Accessor) error {
+		return acc.Update("new").Err()
+	})
+	s, err = doc.At("object", "one").AsString()
+	Assert(t, NoError(err), "no error expected")
+	Assert(t, Equal(s, "new"), "first element should be 'new'")
+
+	// Negetive tests.
+	acc = doc.At("array")
+	err = acc.Do(func(acc *dynaj.Accessor) error {
+		return fmt.Errorf("ouch")
+	}).Err()
+	Assert(t, ErrorContains(err, "ouch"), "error expected")
+}
+
+// TestAccessDeepDo verifies the loop on elements and
+// trees of a JSON document.
+func TestAccessDeepDo(t *testing.T) {
+	doc := createDocument()
+
+	// Positive tests.
+	acc := doc.At("string")
+	acc.DeepDo(func(acc *dynaj.Accessor) error {
+		return acc.Update("new").Err()
+	})
+	s, err := doc.At("string").AsString()
+	Assert(t, NoError(err), "no error expected")
+	Assert(t, Equal(s, "new"), "the element should be 'new'")
+
+	acc = doc.At("nested")
+	acc.DeepDo(func(acc *dynaj.Accessor) error {
+		return acc.Update("new").Err()
+	})
+	s, err = doc.At("nested", "1", "d", "0").AsString()
+	Assert(t, NoError(err), "no error expected")
+	Assert(t, Equal(s, "new"), "deep nested elements should be 'new'")
+
+	// Negetive tests.
+	acc = doc.At("array")
+	err = acc.DeepDo(func(acc *dynaj.Accessor) error {
+		return fmt.Errorf("ouch")
+	}).Err()
+	Assert(t, ErrorContains(err, "ouch"), "error expected")
 }
 
 // EOF
