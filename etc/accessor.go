@@ -168,6 +168,29 @@ func (acc *Accessor) At(path ...ID) *Accessor {
 	return newAccessor(acc.etc, append(acc.path, path...))
 }
 
+// Do executes a handler on the value of the Accessor. If it is an Object
+// or an Array the handler will be called for each child.
+func (acc *Accessor) Do(handle Handler) *Accessor {
+	djHandle := func(djAcc *dynaj.Accessor) error {
+		iacc := newAccessor(acc.etc, djAcc.Path())
+		return handle(iacc)
+	}
+	acc.acc = acc.acc.Do(djHandle)
+	return acc
+}
+
+// DeepDo executes a handler on the value of the Accessor. If it is an Object
+// or an Array the handler will be called for each child. The handler will be
+// called for all children recursively.
+func (acc *Accessor) DeepDo(handle Handler) *Accessor {
+	djHandle := func(djAcc *dynaj.Accessor) error {
+		iacc := newAccessor(acc.etc, djAcc.Path())
+		return handle(iacc)
+	}
+	acc.acc = acc.acc.DeepDo(djHandle)
+	return acc
+}
+
 // checkMacro checks if a macro is inside the value of the Accessor
 // and replaces it.
 func (acc *Accessor) checkMacro(def any) {
@@ -194,7 +217,6 @@ func (acc *Accessor) checkMacro(def any) {
 		macroDef = macro[didx+2:]
 		macro = macro[:didx]
 	}
-	fmt.Printf("macro: %q, macroDef: %q\n", macro, macroDef)
 	// Check if macro is an environment variable of a path.
 	if strings.HasPrefix(macro, "$") {
 		// Environment variable.
@@ -203,7 +225,6 @@ func (acc *Accessor) checkMacro(def any) {
 		// Path.
 		value = acc.etc.At(strings.Split(macro, "::")...).AsString(macroDef)
 	}
-	fmt.Printf("value: %q\n", value)
 	// Check if value is empty.
 	if value == "" {
 		value = macroDef
@@ -211,7 +232,6 @@ func (acc *Accessor) checkMacro(def any) {
 	if value == "" {
 		value = fmt.Sprintf("%v", def)
 	}
-	fmt.Printf("value: %q\n", value)
 	// Replace macro.
 	acc.acc.Update(prefix + value + suffix)
 }

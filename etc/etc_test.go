@@ -84,7 +84,6 @@ func TestMacros(t *testing.T) {
 
 // TestModify tests the modification of configurations.
 func TestModify(t *testing.T) {
-	// Create and modify.
 	cfg, err := etc.Read(bytes.NewReader(createEtc()))
 	Assert(t, NoError(err), "no error expected")
 	Assert(t, NotNil(cfg), "configuration expected")
@@ -108,6 +107,56 @@ func TestModify(t *testing.T) {
 	acc = cfg.At("proxies", "1").Delete()
 	Assert(t, NoError(acc), "no error expected")
 	Assert(t, Length(cfg.At("proxies"), 2), "proxies should have two entries")
+}
+
+// TestDo tests looping over configurations nodes.
+func TestDo(t *testing.T) {
+	cfg, err := etc.Read(bytes.NewReader(createEtc()))
+	Assert(t, NoError(err), "no error expected")
+	Assert(t, NotNil(cfg), "configuration expected")
+
+	// Do.
+	var (
+		keys   []string
+		values []string
+	)
+
+	cfg.At("proxies").Do(func(acc *etc.Accessor) error {
+		keys = append(keys, acc.ID())
+		values = append(values, acc.AsString("<invalid>"))
+		return nil
+	})
+
+	Assert(t, Length(keys, 2), "keys should have 2 entries")
+	Assert(t, Length(values, 2), "values should have 2 entries")
+	Assert(t, Contains(keys, "0"), "keys should contain 0")
+	Assert(t, Contains(keys, "1"), "keys should contain 1")
+	Assert(t, Contains(values, "proxy-a.example.com:8080"), "values should contain proxy-a.example.com:8080")
+	Assert(t, Contains(values, "proxy-b.example.com:8080"), "values should contain proxy-b.example.com:8080")
+}
+
+// TestDeepDo tests looping over configurations nodes deeply.
+func TestDeepDo(t *testing.T) {
+	// Create and modify.
+	cfg, err := etc.Read(bytes.NewReader(createEtc()))
+	Assert(t, NoError(err), "no error expected")
+	Assert(t, NotNil(cfg), "configuration expected")
+
+	// Do deeply.
+	var (
+		keys   []string
+		values []string
+	)
+
+	cfg.Root().DeepDo(func(acc *etc.Accessor) error {
+		keys = append(keys, acc.ID())
+		values = append(values, acc.AsString("<invalid>"))
+		return nil
+	})
+
+	Assert(t, Length(keys, 19), "keys should have 19 entries")
+	Assert(t, Length(values, 19), "values should have 19 entries")
+	Assert(t, Contains(values, "My Server"), "title should be My Server")
 }
 
 // TestModifyWriteRead tests modification and writing of a configuration.

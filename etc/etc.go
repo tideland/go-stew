@@ -18,7 +18,6 @@ import (
 	"io"
 	"os"
 	"strings"
-	"sync"
 
 	"tideland.dev/go/stew/dynaj"
 )
@@ -34,6 +33,12 @@ type Object = dynaj.Object
 type Array = dynaj.Array
 
 //--------------------
+// HANDLER
+//--------------------
+
+type Handler func(acc *Accessor) error
+
+//--------------------
 // ETC
 //--------------------
 
@@ -43,7 +48,6 @@ type Array = dynaj.Array
 // environment variable or a path inside the configuration. If
 // the reference cannot be found the default value is used.
 type Etc struct {
-	mu   sync.RWMutex
 	data *dynaj.Document
 	orig *dynaj.Document
 }
@@ -87,9 +91,12 @@ func ReadFile(filename string) (*Etc, error) {
 
 // At returns the Value at a given path.
 func (e *Etc) At(path ...ID) *Accessor {
-	e.mu.RLock()
-	defer e.mu.RUnlock()
 	return newAccessor(e, path)
+}
+
+// Root returns the root Value.
+func (e *Etc) Root() *Accessor {
+	return newAccessor(e, nil)
 }
 
 // Write writes the configuration as indented JSON to the passed writer. All
