@@ -81,12 +81,37 @@ func TestGet(t *testing.T) {
 
 	// Invalid access.
 	a, err := genj.Get[int](doc, "array")
-	Assert(t, ErrorContains(err, "element is not of type int"), "array must not be accessible")
+	Assert(t, ErrorContains(err, "path points to object or array"), "array must not be accessible")
 	Assert(t, Equal(a, 0), "int must be default value")
 
 	s, err = genj.Get[string](doc, "this", "does", "not", "exist")
-	Assert(t, ErrorContains(err, "cannot get element"), "string must not be accessible")
-	Assert(t, Equal(s, ""), "string must be default value")
+	Assert(t, ErrorContains(err, "cannot get element"), "path does not exist")
+	Assert(t, Equal(s, ""), "string must be standard value")
+
+	s, err = genj.Get[string](doc, "nested", "1", "d")
+	Assert(t, ErrorContains(err, "path points to object or array"), "path is array")
+	Assert(t, Equal(s, ""), "string must be standard value")
+}
+
+// TestGetShort tests the from a JSON document with only one element.
+func TestGetShort(t *testing.T) {
+	// Small, but standard.
+	doc, err := genj.Read(bytes.NewReader([]byte(`{"foo": "bar"}`)))
+	Assert(t, NoError(err), "document must be read w/o error")
+	Assert(t, NotNil(doc), "document must exist")
+
+	s, err := genj.Get[string](doc, "foo")
+	Assert(t, NoError(err), "string must be accessible")
+	Assert(t, Equal(s, "bar"), "string must be correct")
+
+	// Now even smaller.
+	doc, err = genj.Read(bytes.NewReader([]byte(`"bar"`)))
+	Assert(t, NoError(err), "document must be read w/o error")
+	Assert(t, NotNil(doc), "document must exist")
+
+	s, err = genj.Get[string](doc)
+	Assert(t, NoError(err), "string must be accessible")
+	Assert(t, Equal(s, "bar"), "string must be correct")
 }
 
 // TestGetDefault tests the getting of values from a JSON document.
@@ -104,6 +129,9 @@ func TestGetDefault(t *testing.T) {
 
 	i = genj.GetDefault[int](doc, 1174, "intstring")
 	Assert(t, Equal(i, 4711), "int string must be correct")
+
+	i = genj.GetDefault[int](doc, 1234, "string")
+	Assert(t, Equal(i, 1234), "int string must be default value as string is not an int")
 
 	f := genj.GetDefault[float64](doc, 2.7182, "float")
 	Assert(t, Equal(f, 3.1415), "float must be correct")
@@ -126,12 +154,18 @@ func TestGetDefault(t *testing.T) {
 	s = genj.GetDefault[string](doc, "default", "nested", "0", "d", "1")
 	Assert(t, Equal(s, "bar"), "string must be correct")
 
-	// Access with returning of default..
-	i = genj.GetDefault[int](doc, 4711, "array")
-	Assert(t, Equal(i, 4711), "int must be default value")
+	s = genj.GetDefault[string](doc, "default", "nested", "0", "d", "3")
+	Assert(t, Equal(s, "default"), "string must be default value")
 
 	s = genj.GetDefault[string](doc, "default", "this", "does", "not", "exist")
 	Assert(t, Equal(s, "default"), "string must be default value")
+
+	// Access with returning of default..
+	s = genj.GetDefault[string](doc, "don' care", "nested", "0", "d")
+	Assert(t, Equal(s, ""), "int must be standard value")
+
+	i = genj.GetDefault[int](doc, 4711, "array")
+	Assert(t, Equal(i, 0), "int must be standard value")
 }
 
 //--------------------

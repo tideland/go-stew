@@ -103,54 +103,53 @@ func Write(d *Document, w io.Writer) error {
 // returned.
 func Get[V ValueConstraint](d *Document, path ...ID) (V, error) {
 	var v V
-	// Check the path.
-	if len(path) == 0 {
-		return v, fmt.Errorf("empty path")
-	}
 	// Walk the path.
 	e, err := walk(d.root, path)
 	if err != nil {
 		return v, fmt.Errorf("cannot get element: %v", err)
 	}
 	// Check if wanted type.
-	ev, ok := e.(V)
-	if ok {
+	switch ev := e.(type) {
+	case V:
 		return ev, nil
+	case Object, Array:
+		return v, fmt.Errorf("path points to object or array")
 	}
 	// No match, try to convert.
 	nv, defaulted := elementToValue(e, v)
 	if defaulted {
 		return v, fmt.Errorf("element is not of type %T", v)
 	}
-	ev, ok = nv.(V)
+	ev, ok := nv.(V)
 	if !ok {
 		return v, fmt.Errorf("element is not of type %T", v)
 	}
 	return ev, nil
 }
 
-// GetDefault returns the addressed element or the default value if the path is invalid.
+// GetDefault returns the addressed element or the default value if the path is invalid
+// or a conversion fails. Only in case of the path pointing to an Object or Array the
+// given ValueConstraints standard value will be returned.
 func GetDefault[V ValueConstraint](d *Document, def V, path ...ID) V {
-	// Check the path.
-	if len(path) == 0 {
-		return def
-	}
+	var v V
 	// Walk the path.
 	e, err := walk(d.root, path)
 	if err != nil {
 		return def
 	}
 	// Check if wanted type.
-	ev, ok := e.(V)
-	if ok {
+	switch ev := e.(type) {
+	case V:
 		return ev
+	case Object, Array:
+		return v
 	}
 	// Try to convert or take default.
 	nv, defaulted := elementToValue(e, def)
 	if defaulted {
 		return def
 	}
-	ev, ok = nv.(V)
+	ev, ok := nv.(V)
 	if !ok {
 		return def
 	}

@@ -61,9 +61,9 @@ func Assert(stb SubTB, assert Assertion, format string, a ...any) bool {
 //------------------------------
 
 // Fail always fails.
-func Fail(info string) Assertion {
+func Fail(info any) Assertion {
 	return func() (bool, string, error) {
-		return false, info, nil
+		return false, fmt.Sprintf("%v", info), nil
 	}
 }
 

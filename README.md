@@ -15,6 +15,7 @@
 * `capture` allows to capture the output on STDOUT and STDERR; useful for testing
 * `dynaj` helps to work with JSON documents without definition of structs first
 * `etc` provides a simple configuration management based on JSON files
+* `genj` helps working with JSON documents by flexibly using generics
 * `jwt` implements the JSON Web Tokens
 * `loop` supports the management of channel selection loops in goroutines
 * `matcher` matches strings against patterns, like regular expressions, only simpler

@@ -24,28 +24,41 @@ import (
 func walk(e Element, path Path) (Element, error) {
 	// Check the path.
 	if len(path) == 0 {
-		return nil, fmt.Errorf("empty path")
+		return e, nil
 	}
 	// Walk the path.
+	sofar := []string{}
+	notFoundError := func() error {
+		msg := "path ["
+		for i, id := range sofar {
+			if i > 0 {
+				msg += ", "
+			}
+			msg += fmt.Sprintf("%q", id)
+		}
+		msg += "] not found"
+		return fmt.Errorf(msg)
+	}
 	for _, id := range path {
+		sofar = append(sofar, id)
 		switch et := e.(type) {
 		case Object:
 			v, ok := et[id]
 			if !ok {
-				return nil, fmt.Errorf("element %q not found", id)
+				return nil, notFoundError()
 			}
 			e = v
 		case Array:
 			i, err := strconv.Atoi(id)
 			if err != nil {
-				return nil, fmt.Errorf("element %q not found", id)
+				return nil, notFoundError()
 			}
 			if i < 0 || i >= len(et) {
-				return nil, fmt.Errorf("element %q not found", id)
+				return nil, notFoundError()
 			}
 			e = et[i]
 		default:
-			return nil, fmt.Errorf("element %q not found", id)
+			return nil, notFoundError()
 		}
 	}
 	return e, nil
