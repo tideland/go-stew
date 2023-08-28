@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strconv"
 	"time"
 )
 
@@ -104,19 +105,19 @@ func Write(d *Document, w io.Writer) error {
 func Get[V ValueConstraint](d *Document, path ...ID) (V, error) {
 	var v V
 	// Walk the path.
-	e, err := walk(d.root, path)
+	h, _, err := walk(d.root, path)
 	if err != nil {
 		return v, fmt.Errorf("cannot get element: %v", err)
 	}
 	// Check if wanted type.
-	switch ev := e.(type) {
+	switch ht := h.(type) {
 	case V:
-		return ev, nil
+		return ht, nil
 	case Object, Array:
 		return v, fmt.Errorf("path points to object or array")
 	}
 	// No match, try to convert.
-	nv, defaulted := elementToValue(e, v)
+	nv, defaulted := elementToValue(h, v)
 	if defaulted {
 		return v, fmt.Errorf("element is not of type %T", v)
 	}
@@ -133,19 +134,19 @@ func Get[V ValueConstraint](d *Document, path ...ID) (V, error) {
 func GetDefault[V ValueConstraint](d *Document, def V, path ...ID) V {
 	var v V
 	// Walk the path.
-	e, err := walk(d.root, path)
+	h, _, err := walk(d.root, path)
 	if err != nil {
 		return def
 	}
 	// Check if wanted type.
-	switch ev := e.(type) {
+	switch ht := h.(type) {
 	case V:
-		return ev
+		return ht
 	case Object, Array:
 		return v
 	}
 	// Try to convert or take default.
-	nv, defaulted := elementToValue(e, def)
+	nv, defaulted := elementToValue(h, def)
 	if defaulted {
 		return def
 	}
@@ -154,6 +155,34 @@ func GetDefault[V ValueConstraint](d *Document, def V, path ...ID) V {
 		return def
 	}
 	return ev
+}
+
+// Set sets the addressed element to the given value. The path has to be valid and the
+// value must match the ValueConstraint. The old value or a possible error will be
+// returned.
+func Set[V ValueConstraint](d *Document, v V, path ...ID) error {
+	// Walk the path.
+	h, t, err := walk(d.root, path)
+	if err != nil {
+		return fmt.Errorf("cannot set element: %v", err)
+	}
+	// Check if type of head is correct.
+	nv, ok := valueToElement(h, v)
+	if !ok {
+		return fmt.Errorf("current element of type %T does not match to new type %T: %v", h, v, nv)
+	}
+	// Last of tail will be the parent. Set the new value.
+	switch pt := t[len(t)-1].(type) {
+	case Object:
+		pt[path[len(path)-1]] = nv
+	case Array:
+		i, err := strconv.Atoi(path[len(path)-1])
+		if err != nil {
+			return fmt.Errorf("cannot set element: %v", err)
+		}
+		pt[i] = nv
+	}
+	return nil
 }
 
 // EOF

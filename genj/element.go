@@ -13,7 +13,6 @@ package genj // import "tideland.dev/go/stew/genj"
 
 import (
 	"reflect"
-	"strconv"
 	"time"
 )
 
@@ -21,176 +20,160 @@ import (
 // ELEMENT CONVERSION
 //--------------------
 
-// elementToValue converts an element into a value returned as any.
-func elementToValue[V ValueConstraint](e Element, def V) (any, bool) {
+// elementToValue converts an element into a typed Element. The second
+// return value is true if the element could not be converted.
+func elementToValue[V ValueConstraint](e Element, def V) (Element, bool) {
 	deft := reflect.TypeOf(def)
 	switch deft.Kind() {
 	case reflect.String:
-		return elementToString(e, def)
+		se, ok := e.(string)
+		if ok {
+			return se, false
+		}
+		return def, true
 	case reflect.Int:
-		return elementToInt(e, def)
+		ie, ok := e.(int)
+		if ok {
+			return ie, false
+		}
+		fe, ok := e.(float64)
+		if ok {
+			return int(fe), false
+		}
+		return def, true
 	case reflect.Float64:
-		return elementToFloat(e, def)
+		fe, ok := e.(float64)
+		if ok {
+			return fe, false
+		}
+		ie, ok := e.(int)
+		if ok {
+			return float64(ie), false
+		}
+		return def, true
 	case reflect.Bool:
-		return elementToBool(e, def)
+		be, ok := e.(bool)
+		if ok {
+			return be, false
+		}
+		return def, true
 	case reflect.Struct:
-		return elementToTime(e, def)
+		// Time is a JSON string.
+		t, ok := elementToTime(e)
+		if !ok {
+			return def, true
+		}
+		return t, false
 	case reflect.Int64:
-		return elementToDuration(e, def)
+		// Duration is a JSON string.
+		d, ok := elementToDuration(e)
+		if !ok {
+			return def, true
+		}
+		return d, false
 	}
 	return def, true
 }
 
-// elementToString converts an element into a string.
-func elementToString[V ValueConstraint](e Element, def V) (any, bool) {
-	switch et := e.(type) {
-	case string:
-		return et, false
-	case int:
-		return strconv.Itoa(et), false
-	case float64:
-		return strconv.FormatFloat(et, 'f', -1, 64), false
-	case bool:
-		return strconv.FormatBool(et), false
+// valueToElement converts a value into an element if it is allowed. It's the
+// reverse of elementToValue.
+func valueToElement[V ValueConstraint](cv Element, nv V) (Element, bool) {
+	nvt := reflect.TypeOf(nv)
+	switch nvt.Kind() {
+	case reflect.String:
+		_, ok := cv.(string)
+		if ok {
+			return nv, true
+		}
+		return cv, false
+	case reflect.Int:
+		_, ok := cv.(int)
+		if ok {
+			return nv, true
+		}
+		_, ok = cv.(float64)
+		if ok {
+			return nv, true
+		}
+		return cv, false
+	case reflect.Float64:
+		_, ok := cv.(float64)
+		if ok {
+			return nv, true
+		}
+		_, ok = cv.(int)
+		if ok {
+			return nv, true
+		}
+		return cv, false
+	case reflect.Bool:
+		_, ok := cv.(bool)
+		if ok {
+			return nv, true
+		}
+		return cv, false
+	case reflect.Struct:
+		// Time is a JSON string.
+		_, ok := elementToTime(cv)
+		if !ok {
+			return cv, false
+		}
+		return timeToElement(nv)
+	case reflect.Int64:
+		// Duration is a JSON string.
+		_, ok := elementToDuration(cv)
+		if !ok {
+			return cv, false
+		}
+		return durationToElement(nv)
+	}
+	return cv, false
+}
+
+// timeToElement converts a time.Time into an element.
+func timeToElement(a any) (Element, bool) {
+	switch t := a.(type) {
 	case time.Time:
-		return et.Format(time.RFC3339), false
-	case time.Duration:
-		return et.String(), false
+		return t.Format(time.RFC3339Nano), true
 	default:
-		return def, true
+		return nil, false
 	}
 }
 
-// elementToInt converts an element into an int.
-func elementToInt[V ValueConstraint](e Element, def V) (any, bool) {
-	switch et := e.(type) {
-	case string:
-		i, err := strconv.Atoi(et)
-		if err != nil {
-			return def, true
-		}
-		return i, false
-	case int:
-		return et, false
-	case float64:
-		return int(et), false
-	case bool:
-		if et {
-			return 1, false
-		}
-		return 0, false
-	case time.Time:
-		return int(et.Unix()), false
-	case time.Duration:
-		return int(et.Seconds()), false
-	default:
-		return def, true
-	}
-}
-
-// elementToFloat converts an element into a float.
-func elementToFloat[V ValueConstraint](e Element, def V) (any, bool) {
-	switch et := e.(type) {
-	case string:
-		f, err := strconv.ParseFloat(et, 64)
-		if err != nil {
-			return def, true
-		}
-		return f, false
-	case int:
-		return float64(et), false
-	case float64:
-		return et, false
-	case bool:
-		if et {
-			return 1.0, false
-		}
-		return 0.0, false
-	case time.Time:
-		return float64(et.Unix()), false
-	case time.Duration:
-		return et.Seconds(), false
-	default:
-		return def, true
-	}
-}
-
-// elementToBool converts an element into a bool.
-func elementToBool[V ValueConstraint](e Element, def V) (any, bool) {
-	switch et := e.(type) {
-	case string:
-		b, err := strconv.ParseBool(et)
-		if err != nil {
-			return def, true
-		}
-		return b, false
-	case int:
-		return et != 0, false
-	case float64:
-		return et != 0.0, false
-	case bool:
-		return et, false
-	case time.Time:
-		return !et.IsZero(), false
-	case time.Duration:
-		return et != 0, false
-	default:
-		return def, true
-	}
-}
-
-// elementToTime converts an element into a time.
-func elementToTime[V ValueConstraint](e Element, def V) (any, bool) {
-	switch et := e.(type) {
-	case string:
-		t, err := time.Parse(time.RFC3339, et)
-		if err != nil {
-			return def, true
-		}
-		return t, false
-	case int:
-		return time.Unix(int64(et), 0), false
-	case float64:
-		return time.Unix(int64(et), 0), false
-	case bool:
-		if et {
-			return time.Now(), false
-		}
+// elementToTime converts an element into a time.Time.
+func elementToTime(e Element) (time.Time, bool) {
+	s, ok := e.(string)
+	if !ok {
 		return time.Time{}, false
-	case time.Time:
-		return et, false
+	}
+	t, err := time.Parse(time.RFC3339Nano, s)
+	if err != nil {
+		return time.Time{}, false
+	}
+	return t, true
+}
+
+// durationToElement converts a time.Duration into an element.
+func durationToElement(a any) (Element, bool) {
+	switch d := a.(type) {
 	case time.Duration:
-		return time.Now().Add(et), false
+		return d.String(), true
 	default:
-		return def, true
+		return nil, false
 	}
 }
 
-// elementToDuration converts an element into a duration.
-func elementToDuration[V ValueConstraint](e Element, def V) (any, bool) {
-	switch et := e.(type) {
-	case string:
-		d, err := time.ParseDuration(et)
-		if err != nil {
-			return def, true
-		}
-		return d, false
-	case int:
-		return time.Duration(et) * time.Second, false
-	case float64:
-		return time.Duration(et) * time.Second, false
-	case bool:
-		if et {
-			return time.Second, false
-		}
-		return 0, false
-	case time.Time:
-		return time.Since(et), false
-	case time.Duration:
-		return et, false
-	default:
-		return def, true
+// elementToDuration converts an element into a time.Duration.
+func elementToDuration(e Element) (time.Duration, bool) {
+	s, ok := e.(string)
+	if !ok {
+		return time.Duration(0), false
 	}
+	d, err := time.ParseDuration(s)
+	if err != nil {
+		return time.Duration(0), false
+	}
+	return d, true
 }
 
 // EOF

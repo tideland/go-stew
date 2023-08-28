@@ -20,13 +20,17 @@ import (
 // DOCUMENT TREE NAVIGATION
 //--------------------
 
-// walk walks the path and returns the addressed element.
-func walk(e Element, path Path) (Element, error) {
+// walk walks down the path starting at the given element and
+// returns the found element as head and all elements on the path
+// as tail.
+func walk(start Element, path Path) (Element, []Element, error) {
 	// Check the path.
 	if len(path) == 0 {
-		return e, nil
+		return start, nil, nil
 	}
 	// Walk the path.
+	head := start
+	tail := []Element{}
 	sofar := []string{}
 	notFoundError := func() error {
 		msg := "path ["
@@ -41,27 +45,29 @@ func walk(e Element, path Path) (Element, error) {
 	}
 	for _, id := range path {
 		sofar = append(sofar, id)
-		switch et := e.(type) {
+		switch et := head.(type) {
 		case Object:
 			v, ok := et[id]
 			if !ok {
-				return nil, notFoundError()
+				return nil, tail, notFoundError()
 			}
-			e = v
+			tail = append(tail, head)
+			head = v
 		case Array:
 			i, err := strconv.Atoi(id)
 			if err != nil {
-				return nil, notFoundError()
+				return nil, tail, notFoundError()
 			}
 			if i < 0 || i >= len(et) {
-				return nil, notFoundError()
+				return nil, tail, notFoundError()
 			}
-			e = et[i]
+			tail = append(tail, head)
+			head = et[i]
 		default:
-			return nil, notFoundError()
+			return nil, tail, notFoundError()
 		}
 	}
-	return e, nil
+	return head, tail, nil
 }
 
 // EOF

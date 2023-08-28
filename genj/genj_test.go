@@ -47,25 +47,13 @@ func TestGet(t *testing.T) {
 	Assert(t, NoError(err), "int must be accessible")
 	Assert(t, Equal(i, 42), "int must be correct")
 
-	i, err = genj.Get[int](doc, "intstring")
-	Assert(t, NoError(err), "int string must be accessible")
-	Assert(t, Equal(i, 4711), "int string must be correct")
-
 	f, err := genj.Get[float64](doc, "float")
 	Assert(t, NoError(err), "float must be accessible")
 	Assert(t, Equal(f, 3.1415), "float must be correct")
 
-	f, err = genj.Get[float64](doc, "floatstring")
-	Assert(t, NoError(err), "float string must be accessible")
-	Assert(t, Equal(f, 2.7182), "float string must be correct")
-
 	b, err := genj.Get[bool](doc, "bool")
 	Assert(t, NoError(err), "bool must be accessible")
 	Assert(t, Equal(b, true), "bool must be correct")
-
-	b, err = genj.Get[bool](doc, "boolstring")
-	Assert(t, NoError(err), "bool string must be accessible")
-	Assert(t, Equal(b, true), "bool string must be correct")
 
 	tm, err := genj.Get[time.Time](doc, "time")
 	Assert(t, NoError(err), "time must be accessible")
@@ -127,23 +115,14 @@ func TestGetDefault(t *testing.T) {
 	i := genj.GetDefault[int](doc, 4711, "int")
 	Assert(t, Equal(i, 42), "int must be correct")
 
-	i = genj.GetDefault[int](doc, 1174, "intstring")
-	Assert(t, Equal(i, 4711), "int string must be correct")
-
 	i = genj.GetDefault[int](doc, 1234, "string")
 	Assert(t, Equal(i, 1234), "int string must be default value as string is not an int")
 
 	f := genj.GetDefault[float64](doc, 2.7182, "float")
 	Assert(t, Equal(f, 3.1415), "float must be correct")
 
-	f = genj.GetDefault[float64](doc, 3.1415, "floatstring")
-	Assert(t, Equal(f, 2.7182), "float string must be correct")
-
 	b := genj.GetDefault[bool](doc, false, "bool")
 	Assert(t, Equal(b, true), "bool must be correct")
-
-	b = genj.GetDefault[bool](doc, false, "boolstring")
-	Assert(t, Equal(b, true), "bool string must be correct")
 
 	tm := genj.GetDefault[time.Time](doc, time.Date(2000, 9, 1, 1, 0, 0, 0, time.UTC), "time")
 	Assert(t, Equal(tm, time.Date(2019, 9, 1, 12, 0, 0, 0, time.UTC)), "time must be correct")
@@ -168,6 +147,106 @@ func TestGetDefault(t *testing.T) {
 	Assert(t, Equal(i, 0), "int must be standard value")
 }
 
+// TestSet tests the setting of values in a JSON document.
+func TestSet(t *testing.T) {
+	doc, err := genj.Read(bytes.NewReader(createJSON()))
+	Assert(t, NoError(err), "document must be read w/o error")
+	Assert(t, NotNil(doc), "document must exist")
+
+	// Unnested valid and invalid.
+	err = genj.Set(doc, "new value", "string")
+	Assert(t, NoError(err), "string must be set")
+
+	s, err := genj.Get[string](doc, "string")
+	Assert(t, NoError(err), "string must be accessible")
+	Assert(t, Equal(s, "new value"), "string must be correct")
+
+	err = genj.Set[int](doc, 12345, "int")
+	Assert(t, NoError(err), "new int must be set")
+
+	i, err := genj.Get[int](doc, "int")
+	Assert(t, NoError(err), "int must be accessible")
+	Assert(t, Equal(i, 12345), "int must be correct")
+
+	now := time.Now()
+	err = genj.Set[time.Time](doc, now, "time")
+	Assert(t, NoError(err), "time must be set")
+
+	tm, err := genj.Get[time.Time](doc, "time")
+	Assert(t, NoError(err), "time must be accessible")
+	Assert(t, True(tm.Equal(now)), "time must be correct")
+
+	dur := 5 * time.Second
+	err = genj.Set[time.Duration](doc, dur, "duration")
+	Assert(t, NoError(err), "duration must be set")
+
+	d, err := genj.Get[time.Duration](doc, "duration")
+	Assert(t, NoError(err), "duration must be accessible")
+	Assert(t, Equal(d, dur), "duration must be correct")
+
+	err = genj.Set(doc, 4711, "string")
+	Assert(t, ErrorContains(err, "current element of type string does not match to new type int"), "string must not be set as int")
+
+	// Nested valid and invalid.
+	err = genj.Set(doc, "new value", "nested", "0", "d", "1")
+	Assert(t, NoError(err), "string must be set")
+
+	s, err = genj.Get[string](doc, "nested", "0", "d", "1")
+	Assert(t, NoError(err), "string must be accessible")
+	Assert(t, Equal(s, "new value"), "string must be correct")
+
+	err = genj.Set(doc, 4711, "nested", "0", "d", "1")
+	Assert(t, ErrorContains(err, "current element of type string does not match to new type int"), "string must not be set as int")
+}
+
+// TestSetWriteRead test the writing and reading of a JSON document with set values.
+func TestSetWriteRead(t *testing.T) {
+	doc, err := genj.Read(bytes.NewReader(createJSON()))
+	Assert(t, NoError(err), "document must be read w/o error")
+	Assert(t, NotNil(doc), "document must exist")
+
+	// Set some values.
+	err = genj.Set(doc, "new value", "string")
+	Assert(t, NoError(err), "string must be set")
+
+	err = genj.Set[int](doc, 12345, "int")
+	Assert(t, NoError(err), "new int must be set")
+
+	now := time.Now()
+	err = genj.Set[time.Time](doc, now, "time")
+	Assert(t, NoError(err), "time must be set")
+
+	dur := 5 * time.Second
+	err = genj.Set[time.Duration](doc, dur, "duration")
+	Assert(t, NoError(err), "duration must be set")
+
+	// Write and read.
+	buf := &bytes.Buffer{}
+	err = genj.Write(doc, buf)
+	Assert(t, NoError(err), "document must be written w/o error")
+
+	doc, err = genj.Read(buf)
+	Assert(t, NoError(err), "document must be read w/o error")
+	Assert(t, NotNil(doc), "document must exist")
+
+	// Test set values.
+	s, err := genj.Get[string](doc, "string")
+	Assert(t, NoError(err), "string must be accessible")
+	Assert(t, Equal(s, "new value"), "string must be correct")
+
+	i, err := genj.Get[int](doc, "int")
+	Assert(t, NoError(err), "int must be accessible")
+	Assert(t, Equal(i, 12345), "int must be correct")
+
+	tm, err := genj.Get[time.Time](doc, "time")
+	Assert(t, NoError(err), "time must be accessible")
+	Assert(t, True(tm.Equal(now)), "time must be correct")
+
+	d, err := genj.Get[time.Duration](doc, "duration")
+	Assert(t, NoError(err), "duration must be accessible")
+	Assert(t, Equal(d, dur), "duration must be correct")
+}
+
 //--------------------
 // TESTS
 //--------------------
@@ -177,11 +256,8 @@ func createJSON() []byte {
 	return []byte(`{
 		"string": "value",
 		"int": 42,
-		"intstring": "4711",
 		"float": 3.1415,
-		"floatstring": "2.7182",
 		"bool": true,
-		"boolstring": "true",
 		"time": "2019-09-01T12:00:00Z",
 		"duration": "1h30m",
 		"array": [

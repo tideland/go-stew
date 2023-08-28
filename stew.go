@@ -20,7 +20,7 @@ import (
 //--------------------
 
 func Version() *semver.Version {
-	return semver.NewVersion(0, 1, 0, "alpha", "2023-08-17")
+	return semver.NewVersion(0, 1, 0, "alpha", "2023-08-28")
 }
 
 // EOF
