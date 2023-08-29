@@ -117,8 +117,8 @@ func Get[V ValueConstraint](d *Document, path ...ID) (V, error) {
 		return v, fmt.Errorf("path points to object or array")
 	}
 	// No match, try to convert.
-	nv, defaulted := elementToValue(h, v)
-	if defaulted {
+	nv, ok := elementToValue(h, v)
+	if !ok {
 		return v, fmt.Errorf("element is not of type %T", v)
 	}
 	ev, ok := nv.(V)
@@ -146,8 +146,8 @@ func GetDefault[V ValueConstraint](d *Document, def V, path ...ID) V {
 		return v
 	}
 	// Try to convert or take default.
-	nv, defaulted := elementToValue(h, def)
-	if defaulted {
+	nv, ok := elementToValue(h, def)
+	if !ok {
 		return def
 	}
 	ev, ok := nv.(V)
@@ -157,9 +157,8 @@ func GetDefault[V ValueConstraint](d *Document, def V, path ...ID) V {
 	return ev
 }
 
-// Set sets the addressed element to the given value. The path has to be valid and the
-// value must match the ValueConstraint. The old value or a possible error will be
-// returned.
+// Set sets the addressed element to the given value. The new value has to match the
+// type of the current value. The path has to be valid.
 func Set[V ValueConstraint](d *Document, v V, path ...ID) error {
 	// Walk the path.
 	h, t, err := walk(d.root, path)
@@ -181,6 +180,33 @@ func Set[V ValueConstraint](d *Document, v V, path ...ID) error {
 			return fmt.Errorf("cannot set element: %v", err)
 		}
 		pt[i] = nv
+	}
+	return nil
+}
+
+// SetAny sets the addressed element to the given value. The path has to be valid. The type of
+// the current value doesn't matter.
+func SetAny(d *Document, v any, path ...ID) error {
+	// Walk the path.
+	h, t, err := walk(d.root, path)
+	if err != nil {
+		return fmt.Errorf("cannot set element: %v", err)
+	}
+	// Head is not allowed to be an object or array.
+	switch h.(type) {
+	case Object, Array:
+		return fmt.Errorf("current element is not allowed to be an object or array")
+	}
+	// Last of tail will be the parent. Set the new value.
+	switch pt := t[len(t)-1].(type) {
+	case Object:
+		pt[path[len(path)-1]] = v
+	case Array:
+		i, err := strconv.Atoi(path[len(path)-1])
+		if err != nil {
+			return fmt.Errorf("cannot set element: %v", err)
+		}
+		pt[i] = v
 	}
 	return nil
 }

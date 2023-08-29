@@ -247,6 +247,28 @@ func TestSetWriteRead(t *testing.T) {
 	Assert(t, Equal(d, dur), "duration must be correct")
 }
 
+// TestSetAny tests the setting of values in a JSON document.
+func TestSetAny(t *testing.T) {
+	doc, err := genj.Read(bytes.NewReader(createJSON()))
+	Assert(t, NoError(err), "document must be read w/o error")
+	Assert(t, NotNil(doc), "document must exist")
+
+	// Valid setting.
+	err = genj.SetAny(doc, 4711, "string")
+	Assert(t, NoError(err), "string must be set to int value")
+
+	i, err := genj.Get[int](doc, "string")
+	Assert(t, NoError(err), "int must be accessible")
+	Assert(t, Equal(i, 4711), "int must be correct")
+
+	// Invalid setting.
+	err = genj.SetAny(doc, 4711, "nested", "0", "x")
+	Assert(t, ErrorContains(err, "not found"), "not existing path")
+
+	err = genj.SetAny(doc, 4711, "nested", "0", "d")
+	Assert(t, ErrorContains(err, "current element is not allowed to be an object or array"), "array to int")
+}
+
 //--------------------
 // TESTS
 //--------------------

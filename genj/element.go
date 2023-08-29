@@ -20,63 +20,55 @@ import (
 // ELEMENT CONVERSION
 //--------------------
 
-// elementToValue converts an element into a typed Element. The second
-// return value is true if the element could not be converted.
+// elementToValue converts an element into a typed Element. If not possible
+// it returns given default value and false.
 func elementToValue[V ValueConstraint](e Element, def V) (Element, bool) {
 	deft := reflect.TypeOf(def)
 	switch deft.Kind() {
 	case reflect.String:
-		se, ok := e.(string)
-		if ok {
-			return se, false
+		if se, ok := e.(string); ok {
+			return se, true
 		}
-		return def, true
+		return def, false
 	case reflect.Int:
-		ie, ok := e.(int)
-		if ok {
-			return ie, false
+		if ie, ok := e.(int); ok {
+			return ie, true
 		}
-		fe, ok := e.(float64)
-		if ok {
-			return int(fe), false
+		if fe, ok := e.(float64); ok {
+			return int(fe), true
 		}
-		return def, true
+		return def, false
 	case reflect.Float64:
-		fe, ok := e.(float64)
-		if ok {
-			return fe, false
+		if fe, ok := e.(float64); ok {
+			return fe, true
 		}
-		ie, ok := e.(int)
-		if ok {
-			return float64(ie), false
+		if ie, ok := e.(int); ok {
+			return float64(ie), true
 		}
-		return def, true
+		return def, false
 	case reflect.Bool:
-		be, ok := e.(bool)
-		if ok {
-			return be, false
+		if be, ok := e.(bool); ok {
+			return be, true
 		}
-		return def, true
+		return def, false
 	case reflect.Struct:
 		// Time is a JSON string.
-		t, ok := elementToTime(e)
-		if !ok {
-			return def, true
+		if t, ok := elementToTime(e); ok {
+			return t, true
 		}
-		return t, false
+		return def, false
 	case reflect.Int64:
 		// Duration is a JSON string.
-		d, ok := elementToDuration(e)
-		if !ok {
-			return def, true
+		if d, ok := elementToDuration(e); ok {
+			return d, true
 		}
-		return d, false
+		return def, false
 	}
-	return def, true
+	return def, false
 }
 
-// valueToElement converts a value into an element if it is allowed. It's the
-// reverse of elementToValue.
+// valueToElement converts a value into an element if it is allowed. If not
+// possible it returns the current element and false.
 func valueToElement[V ValueConstraint](cv Element, nv V) (Element, bool) {
 	nvt := reflect.TypeOf(nv)
 	switch nvt.Kind() {
