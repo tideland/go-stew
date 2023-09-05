@@ -1,4 +1,4 @@
-// Tideland Go Stew - Generic JSON - Unit Tests
+// Tideland Go Stew - Generic JSON - Private Unit Tests
 //
 // Copyright (C) 2019-2023 Frank Mueller / Tideland / Oldenburg / Germany
 //
@@ -269,8 +269,34 @@ func TestSetAny(t *testing.T) {
 	Assert(t, ErrorContains(err, "current element is not allowed to be an object or array"), "array to int")
 }
 
+// TestCreate tests the creation of values in an existing JSON document.
+func TestCreate(t *testing.T) {
+	doc, err := genj.Read(bytes.NewReader(createJSON()))
+	Assert(t, NoError(err), "document must be read w/o error")
+	Assert(t, NotNil(doc), "document must exist")
+
+	// Valid creation.
+	err = genj.Create(doc, "new value", "string")
+	Assert(t, NoError(err), "string must be used")
+
+	s, err := genj.Get[string](doc, "string")
+	Assert(t, NoError(err), "string must be accessible")
+	Assert(t, Equal(s, "new value"), "string must be set correct")
+
+	err = genj.Create(doc, 4711, "nested", "0", "x")
+	Assert(t, NoError(err), "int must be created")
+
+	i, err := genj.Get[int](doc, "nested", "0", "x")
+	Assert(t, NoError(err), "int must be accessible")
+	Assert(t, Equal(i, 4711), "int must be correct")
+
+	// Invalid creation.
+	err = genj.Create(doc, 4711, "nested", "0", "d")
+	Assert(t, ErrorContains(err, "current element is not allowed to be an object or array"), "array to int")
+}
+
 //--------------------
-// TESTS
+// HELPER
 //--------------------
 
 // createJSON creates a simple JSON test document as bytes.

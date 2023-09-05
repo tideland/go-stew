@@ -25,6 +25,60 @@ import (
 // TESTS
 //--------------------
 
+// TestHeadTailInitLast verifies the splitting of slices.
+func TestHeadTailInitLast(t *testing.T) {
+	tests := []struct {
+		descr  string
+		values []int
+		head   int
+		tail   []int
+		init   []int
+		last   int
+	}{
+		{
+			descr:  "Simple slice",
+			values: []int{1, 2, 3, 4, 5},
+			head:   1,
+			tail:   []int{2, 3, 4, 5},
+			init:   []int{1, 2, 3, 4},
+			last:   5,
+		}, {
+			descr:  "Single value slice",
+			values: []int{1},
+			head:   1,
+			tail:   []int{},
+			init:   []int{},
+			last:   1,
+		}, {
+			descr:  "Empty slice",
+			values: []int{},
+			head:   0,
+			tail:   []int{},
+			init:   []int{},
+			last:   0,
+		}, {
+			descr:  "Nil slice",
+			values: nil,
+			head:   0,
+			tail:   nil,
+			init:   nil,
+			last:   0,
+		},
+	}
+
+	for _, test := range tests {
+		t.Logf("test: %s", test.descr)
+
+		head, tail := slices.HeadTail(test.values)
+		init, last := slices.InitLast(test.values)
+
+		Assert(t, Equal(head, test.head), test.descr)
+		Assert(t, DeepEqual(tail, test.tail), test.descr)
+		Assert(t, DeepEqual(init, test.init), test.descr)
+		Assert(t, Equal(last, test.last), test.descr)
+	}
+}
+
 // TestSort verifies the standard sorting of slices.
 func TestSort(t *testing.T) {
 	tests := []struct {
