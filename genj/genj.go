@@ -211,4 +211,42 @@ func SetAny(d *Document, v any, path ...ID) error {
 	return nil
 }
 
+// Create adds a new value at the end if the path. If the second last element of the path
+// points to an object or array, the last element will be used as key or index. In case of
+// an index multiple number higher than the current length of the array the array will be
+// extended with nil values. Is the path is longer than existing entries, the missing ones
+// will be created as objects or arrays only containing the keys or indexes pointing to the
+// next element.
+func Create[V ValueConstraint](d *Document, v V, path ...ID) error {
+	// Create the path.
+	id, e, err := create(d.root, path)
+	if err != nil {
+		return fmt.Errorf("cannot create element: %v", err)
+	}
+	// Check the element.
+	switch et := e.(type) {
+	case Object:
+		if _, ok := et[id]; ok {
+			return fmt.Errorf("cannot create element: element already exists")
+		}
+		et[id] = v
+	case Array:
+		i, err := strconv.Atoi(id)
+		if err != nil {
+			return fmt.Errorf("cannot create element: %v", err)
+		}
+		if i < 0 {
+			return fmt.Errorf("cannot create element: negative index %d", i)
+		}
+		if i >= len(et) {
+			et = append(et, make([]any, i-len(et)+1)...)
+		}
+		if et[i] != nil {
+			return fmt.Errorf("cannot create element: element already exists")
+		}
+		et[i] = v
+	}
+	return nil
+}
+
 // EOF

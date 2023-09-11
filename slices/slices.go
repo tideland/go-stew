@@ -19,6 +19,52 @@ import (
 // SLICES
 //--------------------
 
+// Head returns the first value of a slice.
+func Head[V any](ivs []V) V {
+	if len(ivs) == 0 {
+		var ov V
+		return ov
+	}
+	return ivs[0]
+}
+
+// HeadTail returns the first value of a slice as head and the rest as tail.
+func HeadTail[V any](ivs []V) (V, []V) {
+	if ivs == nil {
+		var ov V
+		return ov, nil
+	}
+	if len(ivs) == 0 {
+		var ov V
+		return ov, []V{}
+	}
+	return ivs[0], ivs[1:]
+}
+
+// Last returns the last value of a slice.
+func Last[V any](ivs []V) V {
+	if len(ivs) == 0 {
+		var ov V
+		return ov
+	}
+	l := len(ivs) - 1
+	return ivs[l]
+}
+
+// InitLast returns the last value of a slice as last and the rest as init.
+func InitLast[V any](ivs []V) ([]V, V) {
+	if len(ivs) == 0 {
+		var ov V
+		return nil, ov
+	}
+	if len(ivs) == 0 {
+		var ov V
+		return []V{}, ov
+	}
+	l := len(ivs) - 1
+	return ivs[:l], ivs[l]
+}
+
 // Append appends the values of all slices to one new slice.
 func Append[V any](ivss ...[]V) []V {
 	var ovs []V
